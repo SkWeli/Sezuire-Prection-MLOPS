@@ -1,0 +1,274 @@
+@prefix sh:   <http://www.w3.org/ns/shacl#> .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix eeg:  <http://example.org/eeg-epilepsy#> .
+
+
+# SHACL Shapes — EEG Epilepsy MLOps Pipeline
+
+
+# Patient Shape
+
+eeg:PatientShape a sh:NodeShape ;
+    sh:targetClass eeg:Patient ;
+    rdfs:label "Patient Shape" ;
+    rdfs:comment "Validates that every Patient has a non-empty subject ID string." ;
+
+    sh:property [
+        sh:path        eeg:subjectID ;
+        sh:name        "subjectID" ;
+        sh:description "Patient must have exactly one non-empty subjectID string." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:string ;
+        sh:minLength   1 ;
+        sh:message     "Patient must have exactly one non-empty subjectID (xsd:string, length ≥ 1)." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    sh:property [
+        sh:path        eeg:hasSession ;
+        sh:name        "hasSession" ;
+        sh:description "A Patient must be linked to at least one RecordingSession." ;
+        sh:minCount    1 ;
+        sh:class       eeg:RecordingSession ;
+        sh:message     "Patient must have at least one eeg:hasSession link to a RecordingSession." ;
+        sh:severity    sh:Violation ;
+    ] .
+
+
+# RecordingSession Shape
+
+eeg:RecordingSessionShape a sh:NodeShape ;
+    sh:targetClass eeg:RecordingSession ;
+    rdfs:label "Recording Session Shape" ;
+    rdfs:comment "Validates that every RecordingSession has at least 19 EEG channels, exactly one sampling rate, a session ID, and at least one preprocessing step." ;
+
+    # Minimum 19 channels 
+    sh:property [
+        sh:path        eeg:hasChannel ;
+        sh:name        "hasChannel" ;
+        sh:description "RecordingSession must have at least 19 EEGChannels (10-20 system coverage)." ;
+        sh:minCount    19 ;
+        sh:class       eeg:EEGChannel ;
+        sh:message     "RecordingSession must reference at least 19 eeg:EEGChannel individuals via eeg:hasChannel." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    # Exactly one SamplingRate 
+    sh:property [
+        sh:path        eeg:hasSamplingRate ;
+        sh:name        "hasSamplingRate" ;
+        sh:description "RecordingSession must declare exactly one SamplingRate." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:class       eeg:SamplingRate ;
+        sh:message     "RecordingSession must have exactly one eeg:hasSamplingRate link to a SamplingRate individual." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    # Session ID 
+    sh:property [
+        sh:path        eeg:sessionID ;
+        sh:name        "sessionID" ;
+        sh:description "RecordingSession must have a non-empty session ID." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:string ;
+        sh:minLength   1 ;
+        sh:message     "RecordingSession must have exactly one non-empty eeg:sessionID (xsd:string, length ≥ 1)." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    # At least one preprocessing step 
+    sh:property [
+        sh:path        eeg:hasPreprocessingStep ;
+        sh:name        "hasPreprocessingStep" ;
+        sh:description "RecordingSession must declare at least one PreprocessingStep." ;
+        sh:minCount    1 ;
+        sh:class       eeg:PreprocessingStep ;
+        sh:message     "RecordingSession must have at least one eeg:hasPreprocessingStep link." ;
+        sh:severity    sh:Violation ;
+    ] .
+
+
+
+# SamplingRate Shape
+
+eeg:SamplingRateShape a sh:NodeShape ;
+    sh:targetClass eeg:SamplingRate ;
+    rdfs:label "Sampling Rate Shape" ;
+    rdfs:comment "Validates that every SamplingRate individual has a frequencyHz value between 200 and 600 Hz." ;
+
+    sh:property [
+        sh:path        eeg:frequencyHz ;
+        sh:name        "frequencyHz" ;
+        sh:description "Sampling frequency must be a float between 200 and 600 Hz." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:float ;
+        sh:minInclusive 200.0 ;
+        sh:maxInclusive 600.0 ;
+        sh:message     "eeg:frequencyHz must be an xsd:float in the range [200, 600] Hz." ;
+        sh:severity    sh:Violation ;
+    ] .
+
+# EEGChannel Shape
+
+eeg:EEGChannelShape a sh:NodeShape ;
+    sh:targetClass eeg:EEGChannel ;
+    rdfs:label "EEG Channel Shape" ;
+    rdfs:comment "Validates that every EEGChannel has a non-empty channel label." ;
+
+    sh:property [
+        sh:path        eeg:channelLabel ;
+        sh:name        "channelLabel" ;
+        sh:description "EEGChannel must have exactly one non-empty channelLabel string." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:string ;
+        sh:minLength   1 ;
+        sh:message     "EEGChannel must have exactly one non-empty eeg:channelLabel (xsd:string, length ≥ 1)." ;
+        sh:severity    sh:Violation ;
+    ] .
+
+# SeizureEvent Shape
+
+eeg:SeizureEventShape a sh:NodeShape ;
+    sh:targetClass eeg:SeizureEvent ;
+    rdfs:label "Seizure Event Shape" ;
+    rdfs:comment "Validates that every SeizureEvent has numeric onset and offset values, and that onset is strictly less than offset." ;
+
+    # Onset present and typed 
+    sh:property [
+        sh:path        eeg:hasOnset ;
+        sh:name        "hasOnset" ;
+        sh:description "SeizureEvent must have exactly one xsd:float onset value ≥ 0." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:float ;
+        sh:minInclusive 0.0 ;
+        sh:message     "eeg:hasOnset must be an xsd:float ≥ 0." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    # Offset present and typed 
+    sh:property [
+        sh:path        eeg:hasOffset ;
+        sh:name        "hasOffset" ;
+        sh:description "SeizureEvent must have exactly one xsd:float offset value ≥ 0." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:float ;
+        sh:minInclusive 0.0 ;
+        sh:message     "eeg:hasOffset must be an xsd:float ≥ 0." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    # SPARQL constraint: onset < offset 
+    sh:sparql [
+        sh:name        "onsetBeforeOffset" ;
+        sh:description "Seizure onset must be strictly less than seizure offset." ;
+        sh:message     "SeizureEvent constraint violated: eeg:hasOnset ({$onset}) must be < eeg:hasOffset ({$offset})." ;
+        sh:severity    sh:Violation ;
+        sh:prefixes [
+            sh:declare [
+                sh:prefix    "eeg" ;
+                sh:namespace "http://example.org/eeg-epilepsy#"^^xsd:anyURI ;
+            ]
+        ] ;
+        sh:select """
+            SELECT $this ?onset ?offset
+            WHERE {
+                $this eeg:hasOnset  ?onset  .
+                $this eeg:hasOffset ?offset .
+                FILTER ( ?onset >= ?offset )
+            }
+        """ ;
+    ] ;
+
+    # Optional pre-ictal window link 
+    sh:property [
+        sh:path        eeg:hasPreIctalWindow ;
+        sh:name        "hasPreIctalWindow" ;
+        sh:description "If a pre-ictal window is declared, it must point to a PreIctalWindow individual." ;
+        sh:class       eeg:PreIctalWindow ;
+        sh:message     "eeg:hasPreIctalWindow must link to an eeg:PreIctalWindow individual." ;
+        sh:severity    sh:Violation ;
+    ] .
+
+# PreIctalWindow Shape
+
+eeg:PreIctalWindowShape a sh:NodeShape ;
+    sh:targetClass eeg:PreIctalWindow ;
+    rdfs:label "Pre-Ictal Window Shape" ;
+    rdfs:comment "Validates that every PreIctalWindow has a duration between 30 and 120 seconds." ;
+
+    sh:property [
+        sh:path        eeg:windowDuration ;
+        sh:name        "windowDuration" ;
+        sh:description "Pre-ictal window duration must be an xsd:float in [30, 120] seconds." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:float ;
+        sh:minInclusive 30.0 ;
+        sh:maxInclusive 120.0 ;
+        sh:message     "eeg:windowDuration must be an xsd:float in the range [30, 120] seconds." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    sh:property [
+        sh:path        eeg:windowStart ;
+        sh:name        "windowStart" ;
+        sh:description "Pre-ictal window must declare its start time (seconds from file start)." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:float ;
+        sh:minInclusive 0.0 ;
+        sh:message     "eeg:windowStart must be an xsd:float ≥ 0." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    sh:property [
+        sh:path        eeg:windowEnd ;
+        sh:name        "windowEnd" ;
+        sh:description "Pre-ictal window must declare its end time (seconds from file start)." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:float ;
+        sh:minInclusive 0.0 ;
+        sh:message     "eeg:windowEnd must be an xsd:float ≥ 0." ;
+        sh:severity    sh:Violation ;
+    ] .
+
+# PreprocessingStep Shape
+
+eeg:PreprocessingStepShape a sh:NodeShape ;
+    sh:targetClass eeg:PreprocessingStep ;
+    rdfs:label "Preprocessing Step Shape" ;
+    rdfs:comment "Validates that every PreprocessingStep declares a non-empty filterType and a positive stepOrder." ;
+
+    sh:property [
+        sh:path        eeg:filterType ;
+        sh:name        "filterType" ;
+        sh:description "PreprocessingStep must declare a non-empty filterType (e.g. 'notch', 'bandpass', 'ICA')." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:string ;
+        sh:minLength   1 ;
+        sh:message     "PreprocessingStep must have exactly one non-empty eeg:filterType string." ;
+        sh:severity    sh:Violation ;
+    ] ;
+
+    sh:property [
+        sh:path        eeg:stepOrder ;
+        sh:name        "stepOrder" ;
+        sh:description "stepOrder must be a positive integer indicating pipeline position." ;
+        sh:minCount    1 ;
+        sh:maxCount    1 ;
+        sh:datatype    xsd:integer ;
+        sh:minInclusive 1 ;
+        sh:message     "eeg:stepOrder must be an xsd:integer ≥ 1." ;
+        sh:severity    sh:Violation ;
+    ] .

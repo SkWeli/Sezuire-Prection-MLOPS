@@ -1,0 +1,245 @@
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl:  <http://www.w3.org/2002/07/owl#> .
+@prefix xsd:  <http://www.w3.org/2001/XMLSchema#> .
+@prefix eeg:  <http://example.org/eeg-epilepsy#> .
+
+
+# Ontology declaration
+
+eeg: a owl:Ontology ;
+    rdfs:label "EEG Epilepsy MLOps Ontology" ;
+    rdfs:comment "OWL ontology for representing EEG seizure detection and pre-ictal prediction pipelines. Covers patients, recording sessions, channels, seizure events, pre-ictal windows, preprocessing steps, and edge deployment." ;
+    owl:versionInfo "1.0.0" .
+
+
+
+# CLASSES
+
+
+eeg:Patient a owl:Class ;
+    rdfs:label "Patient" ;
+    rdfs:comment "A human subject whose EEG data has been recorded. Identified by a unique subject ID string. Each patient may have one or more recording sessions." .
+
+eeg:RecordingSession a owl:Class ;
+    rdfs:label "Recording Session" ;
+    rdfs:comment "A single continuous EEG recording episode for a patient, stored as one or more EDF files. Carries channel configuration, sampling rate, and any annotated seizure events." .
+
+eeg:EEGChannel a owl:Class ;
+    rdfs:label "EEG Channel" ;
+    rdfs:comment "A single electrode signal captured during a recording session, labelled according to the 10-20 international system (e.g. FP1, CZ, O2). At least 19 channels are required for a valid session." .
+
+eeg:Montage a owl:Class ;
+    rdfs:label "Montage" ;
+    rdfs:comment "The spatial arrangement and referencing scheme of EEG channels (e.g. bipolar, common-average, linked-mastoid). Montage choice affects downstream feature extraction." .
+
+eeg:SamplingRate a owl:Class ;
+    rdfs:label "Sampling Rate" ;
+    rdfs:comment "The digitisation frequency (in Hz) at which the EEG amplifier samples electrode voltages. Supported rates in this pipeline are 256 Hz (CHB-MIT) and 512 Hz (Siena). Must be between 200 and 600 Hz." .
+
+eeg:SeizureEvent a owl:Class ;
+    rdfs:label "Seizure Event" ;
+    rdfs:comment "A clinically annotated ictal episode within a recording session, defined by an onset timestamp and an offset timestamp (both in seconds from the start of the file). Onset must be strictly less than offset." .
+
+eeg:PreIctalWindow a owl:Class ;
+    rdfs:label "Pre-Ictal Window" ;
+    rdfs:comment "The EEG epoch immediately preceding a seizure onset, used as the positive class for pre-ictal prediction. Duration must be between 30 and 120 seconds. Starts at (onset - duration) and ends at onset." .
+
+eeg:PreprocessingStep a owl:Class ;
+    rdfs:label "Preprocessing Step" ;
+    rdfs:comment "A discrete signal-processing operation applied to raw EEG data (e.g. notch filter, bandpass filter, ICA artifact removal, epoch extraction, z-score normalisation). Must declare its filter type for ontology validation." .
+
+eeg:EdgeDevice a owl:Class ;
+    rdfs:label "Edge Device" ;
+    rdfs:comment "A resource-constrained compute platform on which an ONNX-quantised model is deployed for real-time inference (e.g. Raspberry Pi 4, NVIDIA Jetson Nano). Characterised by available RAM and CPU/GPU architecture." .
+
+
+
+# OBJECT PROPERTIES
+
+
+eeg:hasSession a owl:ObjectProperty ;
+    rdfs:label "has session" ;
+    rdfs:comment "Links a Patient to one or more RecordingSessions in which their EEG data was captured." ;
+    rdfs:domain eeg:Patient ;
+    rdfs:range  eeg:RecordingSession .
+
+eeg:hasChannel a owl:ObjectProperty ;
+    rdfs:label "has channel" ;
+    rdfs:comment "Associates a RecordingSession with the EEGChannels it contains. A minimum of 19 channels is required for clinical-grade coverage of the 10-20 system." ;
+    rdfs:domain eeg:RecordingSession ;
+    rdfs:range  eeg:EEGChannel .
+
+eeg:hasMontage a owl:ObjectProperty ;
+    rdfs:label "has montage" ;
+    rdfs:comment "Specifies the electrode Montage applied during or after recording." ;
+    rdfs:domain eeg:RecordingSession ;
+    rdfs:range  eeg:Montage .
+
+eeg:hasSamplingRate a owl:ObjectProperty ;
+    rdfs:label "has sampling rate" ;
+    rdfs:comment "Links a RecordingSession to its SamplingRate individual (256 Hz or 512 Hz)." ;
+    rdfs:domain eeg:RecordingSession ;
+    rdfs:range  eeg:SamplingRate .
+
+eeg:hasSeizureEvent a owl:ObjectProperty ;
+    rdfs:label "has seizure event" ;
+    rdfs:comment "Associates a RecordingSession with zero or more annotated SeizureEvents." ;
+    rdfs:domain eeg:RecordingSession ;
+    rdfs:range  eeg:SeizureEvent .
+
+eeg:hasPreIctalWindow a owl:ObjectProperty ;
+    rdfs:label "has pre-ictal window" ;
+    rdfs:comment "Links a SeizureEvent to the PreIctalWindow that immediately precedes its onset." ;
+    rdfs:domain eeg:SeizureEvent ;
+    rdfs:range  eeg:PreIctalWindow .
+
+eeg:hasPreprocessingStep a owl:ObjectProperty ;
+    rdfs:label "has preprocessing step" ;
+    rdfs:comment "Connects a RecordingSession to the ordered sequence of PreprocessingSteps applied to its raw data before feature extraction." ;
+    rdfs:domain eeg:RecordingSession ;
+    rdfs:range  eeg:PreprocessingStep .
+
+eeg:deployedOn a owl:ObjectProperty ;
+    rdfs:label "deployed on" ;
+    rdfs:comment "Indicates that a trained (and typically ONNX-quantised) model artefact is deployed on a particular EdgeDevice." ;
+    rdfs:domain owl:Thing ;
+    rdfs:range  eeg:EdgeDevice .
+
+
+
+# DATATYPE PROPERTIES
+
+
+# Patient 
+
+eeg:subjectID a owl:DatatypeProperty ;
+    rdfs:label "subject ID" ;
+    rdfs:comment "Unique alphanumeric identifier for a Patient (e.g. 'chb01', 'PN00'). Must be a non-empty string." ;
+    rdfs:domain eeg:Patient ;
+    rdfs:range  xsd:string .
+
+# RecordingSession 
+
+eeg:sessionID a owl:DatatypeProperty ;
+    rdfs:label "session ID" ;
+    rdfs:comment "Unique identifier for a RecordingSession (e.g. 'chb01_01'). Usually derived from the EDF filename." ;
+    rdfs:domain eeg:RecordingSession ;
+    rdfs:range  xsd:string .
+
+eeg:recordingDuration a owl:DatatypeProperty ;
+    rdfs:label "recording duration" ;
+    rdfs:comment "Total duration of the recording session in seconds." ;
+    rdfs:domain eeg:RecordingSession ;
+    rdfs:range  xsd:float .
+
+# EEGChannel 
+
+eeg:channelLabel a owl:DatatypeProperty ;
+    rdfs:label "channel label" ;
+    rdfs:comment "Standard 10-20 label for the electrode (e.g. 'FP1-F7', 'CZ'). Must be a non-empty string." ;
+    rdfs:domain eeg:EEGChannel ;
+    rdfs:range  xsd:string .
+
+# SamplingRate 
+
+eeg:frequencyHz a owl:DatatypeProperty ;
+    rdfs:label "frequency Hz" ;
+    rdfs:comment "Sampling frequency in Hertz. Must be between 200 and 600 Hz for this pipeline." ;
+    rdfs:domain eeg:SamplingRate ;
+    rdfs:range  xsd:float .
+
+# SeizureEvent 
+
+eeg:hasOnset a owl:DatatypeProperty ;
+    rdfs:label "has onset" ;
+    rdfs:comment "Seizure onset time in seconds from the start of the EDF file. Must be strictly less than hasOffset." ;
+    rdfs:domain eeg:SeizureEvent ;
+    rdfs:range  xsd:float .
+
+eeg:hasOffset a owl:DatatypeProperty ;
+    rdfs:label "has offset" ;
+    rdfs:comment "Seizure offset (end) time in seconds from the start of the EDF file. Must be strictly greater than hasOnset." ;
+    rdfs:domain eeg:SeizureEvent ;
+    rdfs:range  xsd:float .
+
+# PreIctalWindow 
+
+eeg:windowDuration a owl:DatatypeProperty ;
+    rdfs:label "window duration" ;
+    rdfs:comment "Duration of the pre-ictal window in seconds. Must be between 30 and 120 seconds." ;
+    rdfs:domain eeg:PreIctalWindow ;
+    rdfs:range  xsd:float .
+
+eeg:windowStart a owl:DatatypeProperty ;
+    rdfs:label "window start" ;
+    rdfs:comment "Start time of the pre-ictal window in seconds (= seizure onset - windowDuration)." ;
+    rdfs:domain eeg:PreIctalWindow ;
+    rdfs:range  xsd:float .
+
+eeg:windowEnd a owl:DatatypeProperty ;
+    rdfs:label "window end" ;
+    rdfs:comment "End time of the pre-ictal window in seconds (= seizure onset)." ;
+    rdfs:domain eeg:PreIctalWindow ;
+    rdfs:range  xsd:float .
+
+# PreprocessingStep 
+
+eeg:stepOrder a owl:DatatypeProperty ;
+    rdfs:label "step order" ;
+    rdfs:comment "Integer position of this PreprocessingStep in the pipeline sequence (1 = first applied)." ;
+    rdfs:domain eeg:PreprocessingStep ;
+    rdfs:range  xsd:integer .
+
+eeg:filterType a owl:DatatypeProperty ;
+    rdfs:label "filter type" ;
+    rdfs:comment "The type of filter or operation applied (e.g. 'notch', 'bandpass', 'ICA', 'zscore', 'epoch'). Must be declared for SHACL validation." ;
+    rdfs:domain eeg:PreprocessingStep ;
+    rdfs:range  xsd:string .
+
+eeg:filterLowHz a owl:DatatypeProperty ;
+    rdfs:label "filter low Hz" ;
+    rdfs:comment "Lower cutoff frequency in Hz for a bandpass or high-pass filter." ;
+    rdfs:domain eeg:PreprocessingStep ;
+    rdfs:range  xsd:float .
+
+eeg:filterHighHz a owl:DatatypeProperty ;
+    rdfs:label "filter high Hz" ;
+    rdfs:comment "Upper cutoff frequency in Hz for a bandpass or low-pass filter." ;
+    rdfs:domain eeg:PreprocessingStep ;
+    rdfs:range  xsd:float .
+
+# EdgeDevice 
+
+eeg:deviceName a owl:DatatypeProperty ;
+    rdfs:label "device name" ;
+    rdfs:comment "Human-readable name of the edge device (e.g. 'Raspberry Pi 4 Model B')." ;
+    rdfs:domain eeg:EdgeDevice ;
+    rdfs:range  xsd:string .
+
+eeg:ramMB a owl:DatatypeProperty ;
+    rdfs:label "RAM MB" ;
+    rdfs:comment "Available RAM on the edge device in megabytes." ;
+    rdfs:domain eeg:EdgeDevice ;
+    rdfs:range  xsd:integer .
+
+eeg:cpuArchitecture a owl:DatatypeProperty ;
+    rdfs:label "CPU architecture" ;
+    rdfs:comment "Instruction set architecture of the edge device CPU (e.g. 'ARM Cortex-A72', 'x86_64')." ;
+    rdfs:domain eeg:EdgeDevice ;
+    rdfs:range  xsd:string .
+
+
+
+# NAMED INDIVIDUALS (well-known SamplingRate instances)
+
+
+eeg:SamplingRate256 a eeg:SamplingRate ;
+    rdfs:label "256 Hz" ;
+    rdfs:comment "Standard sampling rate used in the CHB-MIT paediatric EEG dataset." ;
+    eeg:frequencyHz 256.0 .
+
+eeg:SamplingRate512 a eeg:SamplingRate ;
+    rdfs:label "512 Hz" ;
+    rdfs:comment "Standard sampling rate used in the Siena Scalp EEG dataset." ;
+    eeg:frequencyHz 512.0 .
