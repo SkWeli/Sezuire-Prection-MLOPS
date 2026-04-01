@@ -1,0 +1,79 @@
+name: SHACL Ontology Validation
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  shacl-validate:
+    name: Validate EEG ontology against SHACL shapes
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout 
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Python setup 
+      - name: Set up Python 3.10
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+          cache: pip          # cache pip downloads between runs
+
+      # Install dependencies 
+      - name: Install validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyshacl rdflib
+
+      # Confirm file presence (visible in CI log for debugging) 
+      - name: List ontology files
+        run: |
+          echo "── Ontology files present ──────────────────────────────────"
+          ls -lh ontology/
+          echo "────────────────────────────────────────────────────────────"
+
+      # Run SHACL validation 
+      - name: Run SHACL validator
+        id: shacl
+        run: |
+          echo "════════════════════════════════════════════════════════════"
+          echo "  EEG Epilepsy MLOps — SHACL Validation"
+          echo "  Data graph : ontology/eeg_epilepsy.ttl"
+          echo "  Shapes     : ontology/shacl_shapes.ttl"
+          echo "════════════════════════════════════════════════════════════"
+
+          python src/validation/shacl_validator.py \
+            ontology/eeg_epilepsy.ttl \
+            --shapes    ontology/shacl_shapes.ttl \
+            --ontology  none \
+            --inference rdfs
+
+          echo "SHACL_EXIT=$?" >> "$GITHUB_OUTPUT"
+
+      # Print result banner 
+      # This step always runs so the outcome is visible even when previous step fails.
+      - name: Report validation result
+        if: always()
+        run: |
+          if [ "${{ steps.shacl.outcome }}" = "success" ]; then
+            echo "════════════════════════════════════════════════════════════"
+            echo "  ✅  SHACL VALIDATION PASSED"
+            echo "  ontology/eeg_epilepsy.ttl conforms to all SHACL shapes."
+            echo "════════════════════════════════════════════════════════════"
+          else
+            echo "════════════════════════════════════════════════════════════"
+            echo "  ❌  SHACL VALIDATION FAILED"
+            echo "  ontology/eeg_epilepsy.ttl violates one or more SHACL"
+            echo "  constraints.  See the 'Run SHACL validator' step above"
+            echo "  for the full violation report."
+            echo "════════════════════════════════════════════════════════════"
+            exit 1
+          fi
