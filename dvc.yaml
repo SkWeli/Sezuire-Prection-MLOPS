@@ -1,0 +1,36 @@
+stages:
+
+  # CHB-MIT preprocessing 
+  chbmit_preprocess:
+    desc: >
+      Load raw CHB-MIT EDF files, apply the standard preprocessing chain
+      (bandpass, notch, CAR re-reference), extract labelled 4-second epochs,
+      and save as .npz with RDF provenance sidecars.
+
+    cmd: >
+      python src/preprocessing/pipeline.py
+        --config  experiments/configs/preprocessing.yaml
+        --raw-dir data/raw/chbmit
+        --out-dir data/processed/chbmit
+        --n-jobs  1
+
+    deps:
+      - src/preprocessing/pipeline.py
+      - src/preprocessing/loader.py
+      - data/raw/chbmit/            # DVC-tracked raw data
+
+    params:
+      - experiments/configs/preprocessing.yaml:
+          - preprocessing.bandpass_low_hz
+          - preprocessing.bandpass_high_hz
+          - preprocessing.notch_hz
+          - preprocessing.epoch_duration_s
+          - preprocessing.epoch_overlap_frac
+
+    outs:
+      - data/processed/chbmit/      # .npz epochs + .ttl provenance sidecars
+
+    # metrics and plots can be added here once training is wired up
+    # metrics:
+    #   - data/processed/chbmit/manifest.json:
+    #       cache: false

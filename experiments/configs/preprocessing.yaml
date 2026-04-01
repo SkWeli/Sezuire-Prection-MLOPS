@@ -1,0 +1,24 @@
+# experiments/configs/preprocessing.yaml
+
+# CHB-MIT Preprocessing Parameters
+# All values are tracked by DVC — changing any parameter invalidates the
+# chbmit_preprocess stage cache, forcing a fresh run.
+
+
+preprocessing:
+
+  # Signal filtering 
+  bandpass_low_hz: 0.5      # lower bandpass cutoff (Hz)
+  bandpass_high_hz: 40.0    # upper bandpass cutoff (Hz)
+  notch_hz: 50.0            # power-line notch frequency (Hz); use 60.0 for US data
+
+  # Epoch extraction 
+  epoch_duration_s: 4.0     # sliding window length (seconds)
+  epoch_overlap_frac: 0.50  # fractional overlap between windows (0.5 = 50%)
+
+  # Label boundaries 
+  # (informational — not yet read by loader.py; update loader constants to
+  #  make these hot-swappable without code changes)
+  pre_ictal_min_s: 30       # minimum seconds before seizure onset
+  pre_ictal_max_s: 120      # maximum seconds before seizure onset
+  interictal_buffer_hours: 4 # minimum hours from any seizure to call interictal
