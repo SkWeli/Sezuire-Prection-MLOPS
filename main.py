@@ -7,11 +7,11 @@ Usage:
     python main.py --dataset tusz --stage preprocess
     python main.py --dataset tusz --stage all
 """
-
+from pathlib import Path
 import argparse
 import subprocess
 import sys
-
+import time
 
 def run(dataset="chbmit", stage="all"):
     print("=" * 55)
@@ -54,12 +54,16 @@ def run(dataset="chbmit", stage="all"):
 
     if stage in ("train", "all"):
         print("\n[3/3] Training model with MLflow tracking...")
+        train_start = time.perf_counter()
+        
         subprocess.run([
             "python", "src/training/train.py",
             "--data", "data/processed/tusz/aaaaaajy/aaaaaajy.npz",
             "--epochs", "5"
         ], check=True)
-        print("✅ Model trained + logged to MLflow!")
+
+        train_time = time.perf_counter() - train_start
+        print(f"✅ Model trained + logged to MLflow in {train_time:.1f} seconds!")
 
     print("\n✅ Pipeline complete!")
 

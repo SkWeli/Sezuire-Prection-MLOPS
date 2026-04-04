@@ -4,7 +4,7 @@ Usage: python src/training/train.py --data data/processed/tusz/aaaaaajy/aaaaaajy
 """
 import argparse
 import sys
-from pathlib import Path
+
 
 import mlflow
 import mlflow.pytorch
@@ -37,15 +37,36 @@ class SeizureCNN(nn.Module):
         return self.fc2(x)
 
 
-def train(data_path, epochs=5, lr=0.001, batch_size=32):
-    data_path = Path(data_path)
-    print(f"📂 Loading: {data_path}")
+def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None):
+    import time
+    from pathlib import Path
 
-    data   = np.load(data_path)
-    X      = torch.tensor(data["epochs"]).float().unsqueeze(1)  # (N,1,C,T)
-    y      = torch.tensor(data["labels"]).long()
+    start_time = time.perf_counter()
 
-    print(f"   X: {X.shape} | y: {y.shape} | seizures: {y.sum().item()}")
+    if max_patients is not None:
+        processed_dir = Path("data/processed/tusz")
+        npz_files = sorted(processed_dir.rglob("*.npz"))[:max_patients]
+        print(f"🚀 Loading {len(npz_files)} patients (max {max_patients})")
+        all_X, all_y = [], []
+        for npz_file in npz_files:
+            print(f"   📂 {npz_file.name}")
+            data = np.load(npz_file)
+            all_X.append(data["epochs"])
+            all_y.append(data["labels"])
+            print(f"     {len(data['labels'])} windows, {data['n_seizures']} seizures")
+
+        data_path_str = "tusz-multi"
+        X = torch.tensor(np.concatenate(all_X)).float().unsqueeze(1)  # (N,1,C,T)
+        y = torch.tensor(np.concatenate(all_y)).long()
+    else:
+        data_path = Path(data_path)   # ← convert early
+        print(f"📂 Loading: {data_path}")
+        data = np.load(data_path)
+        X = torch.tensor(data["epochs"]).float().unsqueeze(1)
+        y = torch.tensor(data["labels"]).long()
+        data_path_str = data_path.stem
+
+    print(f"  X: {X.shape} | y: {y.shape} | seizures: {y.sum().item()}")
 
     dataset    = TensorDataset(X, y)
     loader     = DataLoader(dataset, batch_size=batch_size, shuffle=True)
@@ -61,7 +82,7 @@ def train(data_path, epochs=5, lr=0.001, batch_size=32):
             "lr": lr,
             "batch_size": batch_size,
             "model": "SeizureCNN",
-            "dataset": data_path.stem,
+            "dataset": data_path_str,
             "n_samples": len(X),
             "n_seizures": int(y.sum()),
         })
@@ -98,5 +119,6 @@ if __name__ == "__main__":
     parser.add_argument("--epochs",     type=int,   default=5)
     parser.add_argument("--lr",         type=float, default=0.001)
     parser.add_argument("--batch-size", type=int,   default=32)
+    parser.add_argument("--max-patients", type=int, default=None, help="Max number of patients (npz files) to load; None uses --data single file")
     args = parser.parse_args()
-    sys.exit(train(args.data, args.epochs, args.lr, args.batch_size))
+    sys.exit(train(args.data, args.epochs, args.lr, args.batch_size, args.max_patients))
