@@ -16,6 +16,17 @@ import time
 from pathlib import Path
 from src.validation.rdf_generator import generate_tusz_ttl
 
+# Small TUSZ subset for development.
+# We use 5 patients instead of the full dataset because full TUSZ is too large
+# to process quickly on a normal laptop.
+TUSZ_PATIENTS = [
+    "aaaaaajy",
+    "aaaaaayf",
+    "aaaaaazz",
+    "aaaaabep",
+    "aaaaabxe",
+]
+
 def run(dataset="chbmit", stage="all"):
     print("=" * 55)
     print("  Ontology-Driven EEG Seizure Pipeline")
@@ -32,57 +43,115 @@ def run(dataset="chbmit", stage="all"):
             )
 
         elif dataset == "tusz":
-            subprocess.run(
-                [
-                    sys.executable,
-                    "src/preprocessing/tusz_loader.py",
-                    "data/raw/tusz/dev/aaaaaajy"
-                ],
-                check=True
-            )
+            # Process each selected TUSZ patient one by one.
+            # Each patient folder should exist inside data/raw/tusz/dev/
+            for patient_id in TUSZ_PATIENTS:
+                raw_patient_folder = Path("data/raw/tusz/dev") / patient_id
+
+                print("\n--------------------------------------------------")
+                print(f"Processing TUSZ patient from main.py: {patient_id}")
+                print("--------------------------------------------------")
+
+                # If a selected patient folder is missing, stop clearly.
+                # This prevents silent mistakes in the pipeline.
+                if not raw_patient_folder.exists():
+                    print(f"[ERROR] Raw TUSZ patient folder not found: {raw_patient_folder}")
+                    sys.exit(1)
+
+                subprocess.run(
+                    [
+                        sys.executable,
+                        "src/preprocessing/tusz_loader.py",
+                        str(raw_patient_folder)
+                    ],
+                    check=True
+                )
 
         print("Preprocessing done!")
 
         if dataset == "tusz":
-            print("\n[TTL] Generating RDF metadata for processed TUSZ patient...")
+            print("\n[TTL] Generating RDF metadata for processed TUSZ patients...")
 
-            npz_file = "data/processed/tusz/aaaaaajy/aaaaaajy.npz"
+            # Generate one TTL file for each processed TUSZ patient.
+            # Example:
+            # data/processed/tusz/aaaaaajy/aaaaaajy.npz
+            # becomes
+            # data/processed/tusz/aaaaaajy/aaaaaajy.ttl
+            for patient_id in TUSZ_PATIENTS:
+                npz_file = Path("data/processed/tusz") / patient_id / f"{patient_id}.npz"
 
-            generate_tusz_ttl(npz_file)
+                if not npz_file.exists():
+                    print(f"[ERROR] Processed NPZ file not found: {npz_file}")
+                    print("Preprocessing may have failed for this patient.")
+                    sys.exit(1)
+
+                generate_tusz_ttl(npz_file)
 
             print("[TTL] RDF metadata generation complete!")
 
     if stage in ("validate", "all"):
         print("\n[2/3] Running SHACL semantic validation...")
-        # Pass generated .ttl file (if exists) or skip gracefully
-        ttl_file = "data/processed/tusz/aaaaaajy/aaaaaajy.ttl"
-        if stage in ("validate", "all"):
-            print("\n[2/3] Running SHACL semantic validation...")
 
-            if dataset == "tusz":
-                ttl_file = "data/processed/tusz/aaaaaajy/aaaaaajy.ttl"
-            else:
-                ttl_file = "data/processed/chbmit/chb01/chb01.ttl"
+        if dataset == "tusz":
+            # Validate each generated TUSZ TTL file.
+            # If any one patient fails SHACL, the pipeline stops before training.
+            for patient_id in TUSZ_PATIENTS:
+                ttl_file = Path("data/processed/tusz") / patient_id / f"{patient_id}.ttl"
+
+                print("\n--------------------------------------------------")
+                print(f"Validating TUSZ TTL for patient: {patient_id}")
+                print("--------------------------------------------------")
+
+                if Path(ttl_file).exists():
+                    subprocess.run([
+                        sys.executable,
+                        "src/validation/shacl_validator.py",
+                        str(ttl_file)
+                    ], check=True)
+                else:
+                    print(f"[ERROR] TTL file not found: {ttl_file}")
+                    print("Run preprocessing first so RDF metadata can be generated.")
+                    sys.exit(1)
+
+        else:
+            # CHB-MIT validation is kept simple for now.
+            # We will improve this when we reach the CHB-MIT task.
+            ttl_file = "data/processed/chbmit/chb01/chb01.ttl"
 
             if Path(ttl_file).exists():
                 subprocess.run([
-                    sys.executable, "src/validation/shacl_validator.py", ttl_file
+                    sys.executable,
+                    "src/validation/shacl_validator.py",
+                    ttl_file
                 ], check=True)
             else:
-                print(f"❌ TTL file not found: {ttl_file}")
+                print(f"[ERROR] TTL file not found: {ttl_file}")
                 print("Run preprocessing first so RDF metadata can be generated.")
                 sys.exit(1)
 
-            print("Validation stage complete!")
+        print("Validation stage complete!")
 
     if stage in ("train", "all"):
         print("\n[3/3] Training model with MLflow tracking...")
         train_start = time.perf_counter()
         
+        # For now, train using the first processed TUSZ patient.
+        # Later, when we reach the evaluation task, we will combine multiple patients
+        # and add train/validation/test split.
+        first_patient = TUSZ_PATIENTS[0]
+        training_file = Path("data/processed/tusz") / first_patient / f"{first_patient}.npz"
+
+        if not training_file.exists():
+            print(f"[ERROR] Training file not found: {training_file}")
+            sys.exit(1)
+
         subprocess.run([
-            sys.executable, "src/training/train.py",
-            "--data", "data/processed/tusz/aaaaaajy/aaaaaajy.npz",
-            "--epochs", "5"
+            sys.executable,
+            "src/training/train.py",
+            "--data",
+            str(training_file),
+            "--epochs",
+            "5"
         ], check=True)
 
         train_time = time.perf_counter() - train_start
