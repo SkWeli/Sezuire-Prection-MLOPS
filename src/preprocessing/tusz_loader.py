@@ -39,7 +39,7 @@ def parse_csv_seizures(csv_path):
                 intervals.append((float(row['start_time']), float(row['stop_time'])))
 
         total_sec = sum(e - s for s, e in intervals)
-        print(f"    📋 CSV: {len(intervals)} seizure interval(s) ({total_sec:.1f}s) from {parse_path.name}")
+        print(f"     CSV: {len(intervals)} seizure interval(s) ({total_sec:.1f}s) from {parse_path.name}")
 
     except Exception as e:
         print(f"    ⚠️  CSV parse error: {e} — labeling all background")
@@ -70,7 +70,7 @@ def load_tusz_folder(tusz_folder, output_dir="data/processed"):
     output_root.mkdir(parents=True, exist_ok=True)
 
     patient_id = tusz_folder.name
-    print(f"🚀 Processing TUSZ patient: {patient_id}")
+    print(f"Processing TUSZ patient: {patient_id}")
 
     edf_files = sorted(tusz_folder.rglob("*.edf"))
     print(f"Found {len(edf_files)} EDF files")
