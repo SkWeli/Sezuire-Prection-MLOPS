@@ -108,7 +108,7 @@ eeg:SamplingRateShape a sh:NodeShape ;
         sh:minCount    1 ;
         sh:maxCount    1 ;
         sh:datatype    xsd:float ;
-        sh:minInclusive 200.0 ;
+        sh:minInclusive 128.0 ;
         sh:maxInclusive 600.0 ;
         sh:message     "eeg:frequencyHz must be an xsd:float in the range [200, 600] Hz." ;
         sh:severity    sh:Violation ;

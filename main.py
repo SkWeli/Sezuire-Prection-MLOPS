@@ -7,11 +7,14 @@ Usage:
     python main.py --dataset tusz --stage preprocess
     python main.py --dataset tusz --stage all
 """
-from pathlib import Path
+
 import argparse
 import subprocess
 import sys
 import time
+
+from pathlib import Path
+from src.validation.rdf_generator import generate_tusz_ttl
 
 def run(dataset="chbmit", stage="all"):
     print("=" * 55)
@@ -40,17 +43,37 @@ def run(dataset="chbmit", stage="all"):
 
         print("Preprocessing done!")
 
+        if dataset == "tusz":
+            print("\n[TTL] Generating RDF metadata for processed TUSZ patient...")
+
+            npz_file = "data/processed/tusz/aaaaaajy/aaaaaajy.npz"
+
+            generate_tusz_ttl(npz_file)
+
+            print("[TTL] RDF metadata generation complete!")
+
     if stage in ("validate", "all"):
         print("\n[2/3] Running SHACL semantic validation...")
         # Pass generated .ttl file (if exists) or skip gracefully
         ttl_file = "data/processed/tusz/aaaaaajy/aaaaaajy.ttl"
-        if Path(ttl_file).exists():
-            subprocess.run([
-                sys.executable, "src/validation/shacl_validator.py", ttl_file
-            ], check=True)
-        else:
-            print("RDF TTL not generated yet — skipping SHACL (next feature)")
-        print("Validation stage complete!")
+        if stage in ("validate", "all"):
+            print("\n[2/3] Running SHACL semantic validation...")
+
+            if dataset == "tusz":
+                ttl_file = "data/processed/tusz/aaaaaajy/aaaaaajy.ttl"
+            else:
+                ttl_file = "data/processed/chbmit/chb01/chb01.ttl"
+
+            if Path(ttl_file).exists():
+                subprocess.run([
+                    sys.executable, "src/validation/shacl_validator.py", ttl_file
+                ], check=True)
+            else:
+                print(f"❌ TTL file not found: {ttl_file}")
+                print("Run preprocessing first so RDF metadata can be generated.")
+                sys.exit(1)
+
+            print("Validation stage complete!")
 
     if stage in ("train", "all"):
         print("\n[3/3] Training model with MLflow tracking...")
