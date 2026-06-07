@@ -1,0 +1,55 @@
+@prefix eeg: <http://example.org/eeg-epilepsy#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# This patient is invalid because the recording session
+# does NOT have eeg:hasSamplingRate.
+eeg:patient_bad01 a eeg:Patient ;
+    eeg:subjectID "bad01" ;
+    eeg:hasSession eeg:session_bad01 .
+
+eeg:session_bad01 a eeg:RecordingSession ;
+    eeg:sessionID "bad01_session" ;
+    eeg:hasChannel eeg:channel_bad01_1 ;
+    eeg:hasChannel eeg:channel_bad01_2 ;
+    eeg:hasChannel eeg:channel_bad01_3 ;
+    eeg:hasChannel eeg:channel_bad01_4 ;
+    eeg:hasChannel eeg:channel_bad01_5 ;
+    eeg:hasChannel eeg:channel_bad01_6 ;
+    eeg:hasChannel eeg:channel_bad01_7 ;
+    eeg:hasChannel eeg:channel_bad01_8 ;
+    eeg:hasChannel eeg:channel_bad01_9 ;
+    eeg:hasChannel eeg:channel_bad01_10 ;
+    eeg:hasChannel eeg:channel_bad01_11 ;
+    eeg:hasChannel eeg:channel_bad01_12 ;
+    eeg:hasChannel eeg:channel_bad01_13 ;
+    eeg:hasChannel eeg:channel_bad01_14 ;
+    eeg:hasChannel eeg:channel_bad01_15 ;
+    eeg:hasChannel eeg:channel_bad01_16 ;
+    eeg:hasChannel eeg:channel_bad01_17 ;
+    eeg:hasChannel eeg:channel_bad01_18 ;
+    eeg:hasChannel eeg:channel_bad01_19 ;
+    eeg:hasPreprocessingStep eeg:step_bad01_1 .
+
+eeg:step_bad01_1 a eeg:PreprocessingStep ;
+    eeg:filterType "bandpass_filter" ;
+    eeg:stepOrder "1"^^xsd:integer .
+
+eeg:channel_bad01_1 a eeg:EEGChannel ; eeg:channelLabel "FP1-F7" .
+eeg:channel_bad01_2 a eeg:EEGChannel ; eeg:channelLabel "F7-T3" .
+eeg:channel_bad01_3 a eeg:EEGChannel ; eeg:channelLabel "T3-T5" .
+eeg:channel_bad01_4 a eeg:EEGChannel ; eeg:channelLabel "T5-O1" .
+eeg:channel_bad01_5 a eeg:EEGChannel ; eeg:channelLabel "FP2-F8" .
+eeg:channel_bad01_6 a eeg:EEGChannel ; eeg:channelLabel "F8-T4" .
+eeg:channel_bad01_7 a eeg:EEGChannel ; eeg:channelLabel "T4-T6" .
+eeg:channel_bad01_8 a eeg:EEGChannel ; eeg:channelLabel "T6-O2" .
+eeg:channel_bad01_9 a eeg:EEGChannel ; eeg:channelLabel "A1-T3" .
+eeg:channel_bad01_10 a eeg:EEGChannel ; eeg:channelLabel "T3-C3" .
+eeg:channel_bad01_11 a eeg:EEGChannel ; eeg:channelLabel "C3-CZ" .
+eeg:channel_bad01_12 a eeg:EEGChannel ; eeg:channelLabel "CZ-C4" .
+eeg:channel_bad01_13 a eeg:EEGChannel ; eeg:channelLabel "C4-T4" .
+eeg:channel_bad01_14 a eeg:EEGChannel ; eeg:channelLabel "T4-A2" .
+eeg:channel_bad01_15 a eeg:EEGChannel ; eeg:channelLabel "FP1-F3" .
+eeg:channel_bad01_16 a eeg:EEGChannel ; eeg:channelLabel "F3-C3" .
+eeg:channel_bad01_17 a eeg:EEGChannel ; eeg:channelLabel "C3-P3" .
+eeg:channel_bad01_18 a eeg:EEGChannel ; eeg:channelLabel "P3-O1" .
+eeg:channel_bad01_19 a eeg:EEGChannel ; eeg:channelLabel "FP2-F4" .

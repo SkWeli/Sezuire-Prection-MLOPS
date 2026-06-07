@@ -1,0 +1,69 @@
+@prefix eeg: <http://example.org/eeg-epilepsy#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# This is a valid patient.
+# It has a patient ID and one recording session.
+eeg:patient_test01 a eeg:Patient ;
+    eeg:subjectID "test01" ;
+    eeg:hasSession eeg:session_test01 .
+
+# This is a valid recording session.
+# It has:
+# - session ID
+# - sampling rate
+# - channels
+# - preprocessing step
+eeg:session_test01 a eeg:RecordingSession ;
+    eeg:sessionID "test01_session" ;
+    eeg:hasSamplingRate eeg:sampling_test01 ;
+    eeg:hasChannel eeg:channel_test01_1 ;
+    eeg:hasChannel eeg:channel_test01_2 ;
+    eeg:hasChannel eeg:channel_test01_3 ;
+    eeg:hasChannel eeg:channel_test01_4 ;
+    eeg:hasChannel eeg:channel_test01_5 ;
+    eeg:hasChannel eeg:channel_test01_6 ;
+    eeg:hasChannel eeg:channel_test01_7 ;
+    eeg:hasChannel eeg:channel_test01_8 ;
+    eeg:hasChannel eeg:channel_test01_9 ;
+    eeg:hasChannel eeg:channel_test01_10 ;
+    eeg:hasChannel eeg:channel_test01_11 ;
+    eeg:hasChannel eeg:channel_test01_12 ;
+    eeg:hasChannel eeg:channel_test01_13 ;
+    eeg:hasChannel eeg:channel_test01_14 ;
+    eeg:hasChannel eeg:channel_test01_15 ;
+    eeg:hasChannel eeg:channel_test01_16 ;
+    eeg:hasChannel eeg:channel_test01_17 ;
+    eeg:hasChannel eeg:channel_test01_18 ;
+    eeg:hasChannel eeg:channel_test01_19 ;
+    eeg:hasPreprocessingStep eeg:step_test01_1 .
+
+# Valid sampling rate.
+# Your SHACL should now allow 128 Hz.
+eeg:sampling_test01 a eeg:SamplingRate ;
+    eeg:frequencyHz "128.0"^^xsd:float .
+
+# One valid preprocessing step.
+eeg:step_test01_1 a eeg:PreprocessingStep ;
+    eeg:filterType "bandpass_filter" ;
+    eeg:stepOrder "1"^^xsd:integer .
+
+# Valid EEG channels.
+eeg:channel_test01_1 a eeg:EEGChannel ; eeg:channelLabel "FP1-F7" .
+eeg:channel_test01_2 a eeg:EEGChannel ; eeg:channelLabel "F7-T3" .
+eeg:channel_test01_3 a eeg:EEGChannel ; eeg:channelLabel "T3-T5" .
+eeg:channel_test01_4 a eeg:EEGChannel ; eeg:channelLabel "T5-O1" .
+eeg:channel_test01_5 a eeg:EEGChannel ; eeg:channelLabel "FP2-F8" .
+eeg:channel_test01_6 a eeg:EEGChannel ; eeg:channelLabel "F8-T4" .
+eeg:channel_test01_7 a eeg:EEGChannel ; eeg:channelLabel "T4-T6" .
+eeg:channel_test01_8 a eeg:EEGChannel ; eeg:channelLabel "T6-O2" .
+eeg:channel_test01_9 a eeg:EEGChannel ; eeg:channelLabel "A1-T3" .
+eeg:channel_test01_10 a eeg:EEGChannel ; eeg:channelLabel "T3-C3" .
+eeg:channel_test01_11 a eeg:EEGChannel ; eeg:channelLabel "C3-CZ" .
+eeg:channel_test01_12 a eeg:EEGChannel ; eeg:channelLabel "CZ-C4" .
+eeg:channel_test01_13 a eeg:EEGChannel ; eeg:channelLabel "C4-T4" .
+eeg:channel_test01_14 a eeg:EEGChannel ; eeg:channelLabel "T4-A2" .
+eeg:channel_test01_15 a eeg:EEGChannel ; eeg:channelLabel "FP1-F3" .
+eeg:channel_test01_16 a eeg:EEGChannel ; eeg:channelLabel "F3-C3" .
+eeg:channel_test01_17 a eeg:EEGChannel ; eeg:channelLabel "C3-P3" .
+eeg:channel_test01_18 a eeg:EEGChannel ; eeg:channelLabel "P3-O1" .
+eeg:channel_test01_19 a eeg:EEGChannel ; eeg:channelLabel "FP2-F4" .
