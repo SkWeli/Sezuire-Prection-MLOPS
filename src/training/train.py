@@ -12,7 +12,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
-
+from pathlib import Path
 
 class SeizureCNN(nn.Module):
     """Lightweight CNN for EEG seizure detection (quantization-friendly)"""
@@ -74,6 +74,13 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
     optimizer  = torch.optim.Adam(model.parameters(), lr=lr)
     criterion  = nn.CrossEntropyLoss()
 
+    PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+    MLFLOW_DB = PROJECT_ROOT / "mlflow.db"
+    MLFLOW_ARTIFACTS = PROJECT_ROOT / "mlartifacts"
+    MLFLOW_ARTIFACTS.mkdir(parents=True, exist_ok=True)
+
+    mlflow.set_tracking_uri(f"sqlite:///{MLFLOW_DB.as_posix()}")
     mlflow.set_experiment("EEG-Seizure-Detection")
 
     with mlflow.start_run():

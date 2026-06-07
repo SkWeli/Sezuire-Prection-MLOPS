@@ -6,3 +6,129 @@ mlflow.db
 __pycache__/
 *.pyc
 .env
+
+# =========================
+# Python
+# =========================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+.Python
+*.egg-info/
+.eggs/
+build/
+dist/
+
+# =========================
+# Virtual Environment
+# =========================
+venv/
+.env/
+.venv/
+ENV/
+
+# =========================
+# IDE / Editor
+# =========================
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# OS Files
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# Environment Variables
+# =========================
+.env
+.env.*
+!.env.example
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/
+
+# =========================
+# Logs
+# =========================
+*.log
+logs/
+
+# =========================
+# MLflow
+# =========================
+mlruns/
+mlartifacts/
+
+# =========================
+# DVC
+# Keep .dvc files tracked, ignore DVC cache
+# =========================
+.dvc/cache/
+.dvc/tmp/
+.dvc/.lock
+
+# =========================
+# Data Files
+# Do not upload large EEG datasets to GitHub
+# Track them with DVC instead
+# =========================
+data/raw/
+data/interim/
+data/processed/
+data/external/
+
+*.edf
+*.bdf
+*.set
+*.fif
+*.csv
+*.npy
+*.npz
+*.mat
+*.h5
+*.hdf5
+*.pkl
+*.pickle
+
+# =========================
+# Model Outputs
+# =========================
+models/
+checkpoints/
+artifacts/
+outputs/
+runs/
+
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.tflite
+*.joblib
+
+# =========================
+# Reports / Temporary Outputs
+# =========================
+reports/generated/
+figures/generated/
+
+# =========================
+# Testing / Coverage
+# =========================
+.pytest_cache/
+.coverage
+htmlcov/
+
+# =========================
+# Package Managers
+# =========================
+pip-wheel-metadata/

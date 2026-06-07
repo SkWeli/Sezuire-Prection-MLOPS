@@ -24,14 +24,14 @@ def run(dataset="chbmit", stage="all"):
 
         if dataset == "chbmit":
             subprocess.run(
-                ["python", "-m", "src.preprocessing.pipeline"],
+                [sys.executable, "-m", "src.preprocessing.pipeline"],
                 check=True
             )
 
         elif dataset == "tusz":
             subprocess.run(
                 [
-                    "python",
+                    sys.executable,
                     "src/preprocessing/tusz_loader.py",
                     "data/raw/tusz/dev/aaaaaajy"
                 ],
@@ -46,7 +46,7 @@ def run(dataset="chbmit", stage="all"):
         ttl_file = "data/processed/tusz/aaaaaajy/aaaaaajy.ttl"
         if Path(ttl_file).exists():
             subprocess.run([
-                "python", "src/validation/shacl_validator.py", ttl_file
+                sys.executable, "src/validation/shacl_validator.py", ttl_file
             ], check=True)
         else:
             print("RDF TTL not generated yet — skipping SHACL (next feature)")
@@ -57,7 +57,7 @@ def run(dataset="chbmit", stage="all"):
         train_start = time.perf_counter()
         
         subprocess.run([
-            "python", "src/training/train.py",
+            sys.executable, "src/training/train.py",
             "--data", "data/processed/tusz/aaaaaajy/aaaaaajy.npz",
             "--epochs", "5"
         ], check=True)

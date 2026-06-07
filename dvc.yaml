@@ -1,36 +1,17 @@
 stages:
-
-  # CHB-MIT preprocessing 
-  chbmit_preprocess:
+  tusz_all:
     desc: >
-      Load raw CHB-MIT EDF files, apply the standard preprocessing chain
-      (bandpass, notch, CAR re-reference), extract labelled 4-second epochs,
-      and save as .npz with RDF provenance sidecars.
+      Run the full TUSZ pipeline: preprocessing, SHACL validation placeholder,
+      and seizure detection model training with MLflow tracking.
 
     cmd: >
-      python src/preprocessing/pipeline.py
-        --config  experiments/configs/preprocessing.yaml
-        --raw-dir data/raw/chbmit
-        --out-dir data/processed/chbmit
-        --n-jobs  1
+      python main.py --dataset tusz --stage all
 
     deps:
-      - src/preprocessing/pipeline.py
-      - src/preprocessing/loader.py
-      - data/raw/chbmit/            # DVC-tracked raw data
-
-    params:
-      - experiments/configs/preprocessing.yaml:
-          - preprocessing.bandpass_low_hz
-          - preprocessing.bandpass_high_hz
-          - preprocessing.notch_hz
-          - preprocessing.epoch_duration_s
-          - preprocessing.epoch_overlap_frac
+      - main.py
+      - src/preprocessing/tusz_loader.py
+      - src/training/train.py
+      - data/raw/tusz/dev/aaaaaajy
 
     outs:
-      - data/processed/chbmit/      # .npz epochs + .ttl provenance sidecars
-
-    # metrics and plots can be added here once training is wired up
-    # metrics:
-    #   - data/processed/chbmit/manifest.json:
-    #       cache: false
+      - data/processed/tusz/aaaaaajy

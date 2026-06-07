@@ -237,9 +237,9 @@ eeg:cpuArchitecture a owl:DatatypeProperty ;
 eeg:SamplingRate256 a eeg:SamplingRate ;
     rdfs:label "256 Hz" ;
     rdfs:comment "Standard sampling rate used in the CHB-MIT paediatric EEG dataset." ;
-    eeg:frequencyHz 256.0 .
+    eeg:frequencyHz "256.0"^^xsd:float .
 
 eeg:SamplingRate512 a eeg:SamplingRate ;
     rdfs:label "512 Hz" ;
     rdfs:comment "Standard sampling rate used in the Siena Scalp EEG dataset." ;
-    eeg:frequencyHz 512.0 .
+    eeg:frequencyHz "512.0"^^xsd:float .

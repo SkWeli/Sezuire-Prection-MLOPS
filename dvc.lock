@@ -1,0 +1,28 @@
+schema: '2.0'
+stages:
+  tusz_all:
+    cmd: "python main.py --dataset tusz --stage all\n"
+    deps:
+    - path: data/raw/tusz/dev/aaaaaajy
+      hash: md5
+      md5: 3dcd66d1a9298f3e023edcb016b9d771.dir
+      size: 92596523
+      nfiles: 33
+    - path: main.py
+      hash: md5
+      md5: 772cf4eff188cedda7655d422eeff1b1
+      size: 2655
+    - path: src/preprocessing/tusz_loader.py
+      hash: md5
+      md5: a92c1b66ddfb690edc74e7c33300a70f
+      size: 7528
+    - path: src/training/train.py
+      hash: md5
+      md5: b00f67edd8c94aa2bf4ac6b2148266da
+      size: 4996
+    outs:
+    - path: data/processed/tusz/aaaaaajy
+      hash: md5
+      md5: 3b675f7abe90dffa370b0284bca30748.dir
+      size: 87918730
+      nfiles: 1
