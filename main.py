@@ -27,6 +27,17 @@ TUSZ_PATIENTS = [
     "aaaaabxe",
 ]
 
+# CHB-MIT is downloaded inside the PhysioNet folder structure.
+# The actual subject folders chb01, chb02, chb03 are inside this path.
+CHBMIT_RAW_DIR = Path("data/raw/chbmit/physionet.org/files/chbmit/1.0.0")
+
+# For Task 10, we first process only 3 CHB-MIT subjects.
+CHBMIT_SUBJECTS = [
+    "chb01",
+    "chb02",
+    "chb03",
+]
+
 def run(dataset="chbmit", stage="all"):
     print("=" * 55)
     print("  Ontology-Driven EEG Seizure Pipeline")
@@ -37,8 +48,29 @@ def run(dataset="chbmit", stage="all"):
         print("\n[1/3] Running preprocessing...")
 
         if dataset == "chbmit":
+            # CHB-MIT pipeline expects raw_dir to directly contain subject folders
+            # such as chb01, chb02, chb03.
+            #
+            # Your downloaded data is nested inside:
+            # data/raw/chbmit/physionet.org/files/chbmit/1.0.0
+            #
+            # So we pass that exact folder as --raw-dir.
+            if not CHBMIT_RAW_DIR.exists():
+                print(f"[ERROR] CHB-MIT raw directory not found: {CHBMIT_RAW_DIR}")
+                sys.exit(1)
+
             subprocess.run(
-                [sys.executable, "-m", "src.preprocessing.pipeline"],
+                [
+                    sys.executable,
+                    "-m",
+                    "src.preprocessing.pipeline",
+                    "--raw-dir",
+                    str(CHBMIT_RAW_DIR),
+                    "--out-dir",
+                    "data/processed/chbmit",
+                    "--n-jobs",
+                    "1",
+                ],
                 check=True
             )
 
