@@ -132,3 +132,20 @@ htmlcov/
 # Package Managers
 # =========================
 pip-wheel-metadata/
+
+@"
+
+# Local MLflow tracking files
+mlflow.db
+mlruns/
+mlartifacts/
+
+# Large/generated EEG data
+data/raw/
+data/processed/
+*.edf
+*.npz
+
+# DVC local cache
+.dvc/cache/
+"@ | Add-Content .gitignore

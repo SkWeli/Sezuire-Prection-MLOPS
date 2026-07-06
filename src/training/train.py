@@ -124,15 +124,26 @@ def compute_binary_auc(y_true, y_score):
     return float(auc)
 
 
-def evaluate_model(model, loader, criterion):
+def evaluate_model(model, loader, criterion, window_step_s=2.0):
     """
-    Evaluate the model and return proper classification metrics.
+    Evaluate the model and return classification metrics.
 
-    This function is used for:
-    - validation evaluation after each epoch
-    - final test evaluation after training
+    This includes:
+    - accuracy
+    - precision
+    - recall/sensitivity
+    - specificity
+    - F1-score
+    - AUC
+    - confusion matrix values
+    - false alarms per hour
 
-    It does not update model weights.
+    false alarms per hour:
+        Calculated as false positive windows per evaluated EEG hour.
+
+    Note:
+        This is currently a window-level approximation.
+        Later, this can be improved into event-level false alarm counting.
     """
 
     model.eval()
@@ -150,11 +161,12 @@ def evaluate_model(model, loader, criterion):
             loss = criterion(outputs, yb)
 
             batch_size = xb.size(0)
+
             total_loss += loss.item() * batch_size
             total_samples += batch_size
 
-            # Convert logits into probabilities.
-            # We use class 1 probability as the seizure score.
+            # Convert logits into class probabilities.
+            # Class 1 is seizure, so this score is used for AUC.
             probabilities = torch.softmax(outputs, dim=1)
             seizure_scores = probabilities[:, 1]
 
@@ -168,7 +180,7 @@ def evaluate_model(model, loader, criterion):
     y_pred = np.asarray(all_pred)
     y_score = np.asarray(all_scores)
 
-    # Confusion matrix values for binary classification.
+    # Binary confusion matrix values.
     # Positive class = seizure.
     tp = int(np.sum((y_true == 1) & (y_pred == 1)))
     tn = int(np.sum((y_true == 0) & (y_pred == 0)))
@@ -176,17 +188,10 @@ def evaluate_model(model, loader, criterion):
     fn = int(np.sum((y_true == 1) & (y_pred == 0)))
 
     accuracy = (tp + tn) / total_samples
-
-    # Precision: among predicted seizures, how many were correct?
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
-
-    # Recall/Sensitivity: among actual seizures, how many were detected?
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-
-    # Specificity: among actual non-seizures, how many were correctly rejected?
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
 
-    # F1 balances precision and recall.
     f1 = (
         2 * precision * recall / (precision + recall)
         if (precision + recall) > 0
@@ -194,8 +199,21 @@ def evaluate_model(model, loader, criterion):
     )
 
     auc = compute_binary_auc(y_true, y_score)
-
     avg_loss = total_loss / total_samples
+
+    # Estimate how much EEG time was evaluated.
+    # Example:
+    # 350 test windows * 2 second step = 700 seconds = 0.194 hours.
+    evaluated_duration_seconds = total_samples * window_step_s
+    evaluated_duration_hours = evaluated_duration_seconds / 3600.0
+
+    # False alarms are false positives.
+    # We divide by evaluated hours to get false alarms per hour.
+    false_alarms_per_hour = (
+        fp / evaluated_duration_hours
+        if evaluated_duration_hours > 0
+        else 0.0
+    )
 
     return {
         "loss": avg_loss,
@@ -205,13 +223,32 @@ def evaluate_model(model, loader, criterion):
         "specificity": specificity,
         "f1": f1,
         "auc": auc,
+
+        # Confusion matrix values
         "tp": tp,
         "tn": tn,
         "fp": fp,
         "fn": fn,
+
+        # False alarm analysis
+        "evaluated_duration_seconds": evaluated_duration_seconds,
+        "evaluated_duration_hours": evaluated_duration_hours,
+        "false_alarms_per_hour": false_alarms_per_hour,
     }
 
-def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None):
+def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None, window_overlap_frac=0.5):
+    """
+    Train the baseline seizure detection model.
+
+    window_overlap_frac:
+        The overlap used during EEG window creation.
+        Example:
+            0.5 means 50% overlap.
+
+    Why this is needed:
+        False alarms per hour depends on how much EEG time each test window represents.
+    """
+    
     import time
     from pathlib import Path
 
@@ -222,9 +259,13 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
         npz_files = sorted(processed_dir.rglob("*.npz"))[:max_patients]
         print(f"🚀 Loading {len(npz_files)} patients (max {max_patients})")
         all_X, all_y = [], []
+        sampling_rate = None
         for npz_file in npz_files:
             print(f"   📂 {npz_file.name}")
             data = np.load(npz_file)
+            if sampling_rate is None:
+                # If the metadata is missing, safely use 128.0 as the default.
+                sampling_rate = float(data["sfreq"]) if "sfreq" in data.files else 128.0
             all_X.append(data["epochs"])
             all_y.append(data["labels"])
             print(f"     {len(data['labels'])} windows, {data['n_seizures']} seizures")
@@ -233,14 +274,36 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
         X = torch.tensor(np.concatenate(all_X)).float().unsqueeze(1)  # (N,1,C,T)
         y = torch.tensor(np.concatenate(all_y)).long()
     else:
-        data_path = Path(data_path)   # ← convert early
+        data_path = Path(data_path)
         print(f"📂 Loading: {data_path}")
+
         data = np.load(data_path)
+
         X = torch.tensor(data["epochs"]).float().unsqueeze(1)
         y = torch.tensor(data["labels"]).long()
+
         data_path_str = data_path.stem
 
+        # Sampling rate is used to calculate the time duration represented by windows.
+        sampling_rate = float(data["sfreq"]) if "sfreq" in data.files else 128.0
+
     print(f"  X: {X.shape} | y: {y.shape} | seizures: {y.sum().item()}")
+
+    # Each EEG window has shape: (channels, timepoints).
+    # X shape is: (N, 1, channels, timepoints)
+    n_timepoints = X.shape[-1]
+
+    # Window duration in seconds.
+    # Example: 512 timepoints / 128 Hz = 4 seconds.
+    window_duration_s = n_timepoints / sampling_rate
+
+    # Because windows overlap, each new window does not represent the full duration.
+    # With 50% overlap, a 4-second window moves forward by 2 seconds.
+    window_step_s = window_duration_s * (1.0 - window_overlap_frac)
+
+    print(f"  Sampling rate   : {sampling_rate:.1f} Hz")
+    print(f"  Window duration : {window_duration_s:.2f} seconds")
+    print(f"  Window step     : {window_step_s:.2f} seconds")
 
     dataset = TensorDataset(X, y)
 
@@ -353,7 +416,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
             # Evaluate on validation data after each epoch.
             # Validation metrics show how well the model performs on unseen data
             # during training, without updating the model weights.
-            val_metrics = evaluate_model(model, val_loader, criterion)
+            val_metrics = evaluate_model(model, val_loader, criterion, window_step_s=window_step_s)
             val_loss = val_metrics["loss"]
             val_acc = val_metrics["accuracy"]
 
@@ -370,6 +433,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
                 "val_recall_sensitivity": val_metrics["recall_sensitivity"],
                 "val_specificity": val_metrics["specificity"],
                 "val_f1": val_metrics["f1"],
+                "val_false_alarms_per_hour": val_metrics["false_alarms_per_hour"],
             }, step=epoch + 1)
 
             # AUC can be NaN if the split contains only one class.
@@ -385,7 +449,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
                 f"val_f1: {val_metrics['f1']:.3f}"
             )
         # Final test evaluation.
-        test_metrics = evaluate_model(model, test_loader, criterion)
+        test_metrics = evaluate_model(model, test_loader, criterion, window_step_s=window_step_s)
 
         final_reported_accuracy = test_metrics["accuracy"]
 
@@ -404,6 +468,10 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
             "test_tn": test_metrics["tn"],
             "test_fp": test_metrics["fp"],
             "test_fn": test_metrics["fn"],
+
+            # False alarm analysis
+            "test_evaluated_duration_hours": test_metrics["evaluated_duration_hours"],
+            "test_false_alarms_per_hour": test_metrics["false_alarms_per_hour"],
         })
 
         # AUC can be NaN if the test split has only one class.
@@ -420,6 +488,8 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
         print(f"Recall / Sensitivity         : {test_metrics['recall_sensitivity']:.3f}")
         print(f"Specificity                  : {test_metrics['specificity']:.3f}")
         print(f"F1-score                     : {test_metrics['f1']:.3f}")
+        print(f"Evaluated test duration hrs  : {test_metrics['evaluated_duration_hours']:.4f}")
+        print(f"False alarms per hour        : {test_metrics['false_alarms_per_hour']:.2f}")
 
         if not np.isnan(test_metrics["auc"]):
             print(f"AUC                          : {test_metrics['auc']:.3f}")
@@ -450,5 +520,6 @@ if __name__ == "__main__":
     parser.add_argument("--lr",         type=float, default=0.001)
     parser.add_argument("--batch-size", type=int,   default=32)
     parser.add_argument("--max-patients", type=int, default=None, help="Max number of patients (npz files) to load; None uses --data single file")
+    parser.add_argument("--window-overlap-frac", type=float, default=0.5, help="Window overlap fraction used during preprocessing. Default 0.5 means 50% overlap.")
     args = parser.parse_args()
-    sys.exit(train(args.data, args.epochs, args.lr, args.batch_size, args.max_patients))
+    sys.exit(train(args.data, args.epochs, args.lr, args.batch_size, args.max_patients, args.window_overlap_frac))
