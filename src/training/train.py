@@ -210,6 +210,11 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
         "train_samples": len(train_dataset),
         "val_samples": len(val_dataset),
         "test_samples": len(test_dataset),
+
+        # This makes it clear that final accuracy is reported from the test set,
+        # not from the training set.
+        "reported_accuracy_source": "held_out_test_set",
+        "reported_accuracy_metric": "final_test_accuracy",
     })
 
         for epoch in range(epochs):
@@ -273,16 +278,23 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None)
         # This is the most important accuracy value because the model has not trained on test data.
         test_loss, test_acc = evaluate_model(model, test_loader, criterion)
 
+
+        # Store the official reported accuracy separately.
+        final_reported_accuracy = test_acc
+
         # These values should be used when reporting final model performance.
         mlflow.log_metrics({
             "test_loss": test_loss,
             "test_accuracy": test_acc,
+            "final_test_accuracy": final_reported_accuracy,
         })
 
         print("\nFinal Test Results")
         print("------------------")
         print(f"Test loss    : {test_loss:.4f}")
         print(f"Test accuracy: {test_acc:.3f}")
+        print(f"Final reported accuracy      : {final_reported_accuracy:.3f}")
+        print("Reported accuracy source     : held-out test set")
 
 
         mlflow.pytorch.log_model(model, name="seizure_cnn")
