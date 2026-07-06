@@ -29,7 +29,7 @@ TUSZ_PATIENTS = [
 
 # CHB-MIT is downloaded inside the PhysioNet folder structure.
 # The actual subject folders chb01, chb02, chb03 are inside this path.
-CHBMIT_RAW_DIR = Path("data/raw/chbmit/physionet.org/files/chbmit/1.0.0")
+CHBMIT_RAW_DIR = Path("data/raw/chbmit_subset")
 
 # For Task 10, we first process only 3 CHB-MIT subjects.
 CHBMIT_SUBJECTS = [
