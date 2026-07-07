@@ -4,7 +4,7 @@ Usage: python src/training/train.py --data data/processed/tusz/aaaaaajy/aaaaaajy
 """
 import argparse
 import sys
-
+import csv
 
 import mlflow
 import mlflow.pytorch
@@ -370,6 +370,112 @@ def save_test_metrics_report(metrics, output_dir, run_name, baseline_metrics=Non
 
     return report_path
 
+def save_cnn_baseline_results_table(test_metrics, baseline_metrics, output_dir, run_name):
+    """
+    Save a simple comparison table for the CNN model and majority-class baseline.
+
+    Why this table is useful:
+    - It gives a clean result summary for the thesis.
+    - It makes CNN vs baseline comparison easy to understand.
+    - It saves both CSV and Markdown formats.
+    """
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    csv_path = output_dir / f"{run_name}_cnn_baseline_results.csv"
+    md_path = output_dir / f"{run_name}_cnn_baseline_results.md"
+
+    # Keep the table columns simple and thesis-friendly.
+    fieldnames = [
+        "model",
+        "accuracy",
+        "precision",
+        "recall_sensitivity",
+        "specificity",
+        "f1_score",
+        "auc",
+        "false_alarms_per_hour",
+        "tp",
+        "tn",
+        "fp",
+        "fn",
+    ]
+
+    rows = [
+        {
+            "model": "SeizureCNN",
+            "accuracy": test_metrics["accuracy"],
+            "precision": test_metrics["precision"],
+            "recall_sensitivity": test_metrics["recall_sensitivity"],
+            "specificity": test_metrics["specificity"],
+            "f1_score": test_metrics["f1"],
+            "auc": test_metrics["auc"],
+            "false_alarms_per_hour": test_metrics["false_alarms_per_hour"],
+            "tp": test_metrics["tp"],
+            "tn": test_metrics["tn"],
+            "fp": test_metrics["fp"],
+            "fn": test_metrics["fn"],
+        },
+        {
+            "model": "MajorityClassBaseline",
+            "accuracy": baseline_metrics["accuracy"],
+            "precision": baseline_metrics["precision"],
+            "recall_sensitivity": baseline_metrics["recall_sensitivity"],
+            "specificity": baseline_metrics["specificity"],
+            "f1_score": baseline_metrics["f1"],
+            "auc": baseline_metrics["auc"],
+            "false_alarms_per_hour": baseline_metrics["false_alarms_per_hour"],
+            "tp": baseline_metrics["tp"],
+            "tn": baseline_metrics["tn"],
+            "fp": baseline_metrics["fp"],
+            "fn": baseline_metrics["fn"],
+        },
+    ]
+
+    # Save CSV table.
+    # CSV is useful for later analysis and final result tables.
+    with open(csv_path, "w", newline="", encoding="utf-8") as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+
+        for row in rows:
+            writer.writerow(row)
+
+    # Save Markdown table.
+    # Markdown is easy to paste into README, thesis drafts, or notes.
+    with open(md_path, "w", encoding="utf-8") as md_file:
+        md_file.write("# CNN Baseline Result Table\n\n")
+        md_file.write("| Model | Accuracy | Precision | Recall/Sensitivity | Specificity | F1-score | AUC | False Alarms/Hour | TP | TN | FP | FN |\n")
+        md_file.write("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n")
+
+        for row in rows:
+            auc_value = row["auc"]
+
+            # AUC can be NaN if only one class exists in a split.
+            # Show it clearly instead of writing an invalid number.
+            if np.isfinite(auc_value):
+                auc_text = f"{auc_value:.4f}"
+            else:
+                auc_text = "N/A"
+
+            md_file.write(
+                f"| {row['model']} "
+                f"| {row['accuracy']:.4f} "
+                f"| {row['precision']:.4f} "
+                f"| {row['recall_sensitivity']:.4f} "
+                f"| {row['specificity']:.4f} "
+                f"| {row['f1_score']:.4f} "
+                f"| {auc_text} "
+                f"| {row['false_alarms_per_hour']:.4f} "
+                f"| {row['tp']} "
+                f"| {row['tn']} "
+                f"| {row['fp']} "
+                f"| {row['fn']} |\n"
+            )
+
+    return csv_path, md_path
+
 def get_labels_from_split(split_dataset):
     """
     Extract labels from a dataset split created by random_split().
@@ -717,6 +823,15 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             window_step_s=window_step_s
         )
 
+        # Save a simple CNN vs majority-class baseline result table.
+        # This table is useful for the thesis and final evaluation discussion.
+        table_csv_path, table_md_path = save_cnn_baseline_results_table(
+            test_metrics=test_metrics,
+            baseline_metrics=baseline_metrics,
+            output_dir=PROJECT_ROOT / "reports" / "tables",
+            run_name=data_path_str
+        )
+
         # Log all final test metrics with the prefix "test".
         # These are the official final evaluation metrics.
         log_evaluation_metrics_to_mlflow(
@@ -766,6 +881,18 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
         mlflow.log_artifact(
             str(report_path),
             artifact_path="reports"
+        )
+
+        # Log result tables as MLflow artifacts.
+        # These can be downloaded later from the MLflow run page.
+        mlflow.log_artifact(
+            str(table_csv_path),
+            artifact_path="reports/tables"
+        )
+
+        mlflow.log_artifact(
+            str(table_md_path),
+            artifact_path="reports/tables"
         )
         
         # AUC can be NaN if the test split has only one class.
@@ -831,6 +958,11 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             f"False alarms/hour difference  : "
             f"{test_metrics['false_alarms_per_hour'] - baseline_metrics['false_alarms_per_hour']:+.2f}"
         )
+
+        print("\nSaved Result Tables")
+        print("-------------------")
+        print(f"CSV table      : {table_csv_path}")
+        print(f"Markdown table : {table_md_path}")
 
         print("\nReported accuracy source     : held-out test set")
 
