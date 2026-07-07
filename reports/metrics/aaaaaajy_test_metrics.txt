@@ -1,13 +1,13 @@
 Final Test Evaluation Report
 ============================
 
-Test loss                    : 0.6801
+Test loss                    : 0.6844
 Test accuracy                : 0.5600
 Precision                    : 0.5600
 Recall / Sensitivity         : 1.0000
 Specificity                  : 0.0000
 F1-score                     : 0.7179
-AUC                          : 0.4972
+AUC                          : 0.5215
 Evaluated duration hours     : 0.1944
 False alarms per hour        : 792.0000
 

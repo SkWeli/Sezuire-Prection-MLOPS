@@ -40,38 +40,7 @@ from src.evaluation.reporting import (
     save_test_metrics_report,
     save_cnn_baseline_results_table,
 )
-
-def split_dataset(dataset, train_ratio=0.70, val_ratio=0.15, seed=42):
-    """
-    Split the full EEG window dataset into train, validation, and test sets.
-
-    The split used here is:
-    - 70% training
-    - 15% validation
-    - 15% testing
-    """
-
-    total_size = len(dataset)
-
-    # Calculate train and validation sizes using the given ratios.
-    train_size = int(train_ratio * total_size)
-    val_size = int(val_ratio * total_size)
-
-    # Calculate test size using the remaining samples.
-    # This avoids losing samples due to rounding.
-    test_size = total_size - train_size - val_size
-
-    # A fixed random seed makes the split reproducible.
-    # This means the same samples go into train/val/test every time we run.
-    generator = torch.Generator().manual_seed(seed)
-
-    train_dataset, val_dataset, test_dataset = random_split(
-        dataset,
-        [train_size, val_size, test_size],
-        generator=generator
-    )
-
-    return train_dataset, val_dataset, test_dataset
+from src.evaluation.splits import split_dataset
 
 def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None, window_overlap_frac=0.5):
     """
@@ -450,9 +419,41 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
         print("\nReported accuracy source     : held-out test set")
 
+        # Save a local PyTorch checkpoint.
+        # This allows evaluate.py to load the trained model later without retraining.
+        model_output_dir = PROJECT_ROOT / "models"
+        model_output_dir.mkdir(parents=True, exist_ok=True)
+
+        model_checkpoint_path = model_output_dir / "seizure_cnn.pt"
+
+        torch.save(
+            {
+                "model_name": "SeizureCNN",
+                "model_state_dict": model.state_dict(),
+
+                # Store input shape details so evaluate.py can rebuild the model correctly.
+                "n_channels": int(X.shape[2]),
+                "n_timepoints": int(X.shape[3]),
+                "n_classes": 2,
+
+                # Store window information used for false alarm calculation.
+                "sampling_rate_hz": sampling_rate,
+                "window_duration_s": window_duration_s,
+                "window_overlap_frac": window_overlap_frac,
+                "window_step_s": window_step_s,
+            },
+            model_checkpoint_path
+        )
+
+        # Log the checkpoint as an MLflow artifact as well.
+        mlflow.log_artifact(
+            str(model_checkpoint_path),
+            artifact_path="models"
+        )
 
         mlflow.pytorch.log_model(model, name="seizure_cnn")
         print("✅ Model logged to MLflow!")
+        print(f"✅ Local model checkpoint saved: {model_checkpoint_path}")
         print(f"✅ Run: mlflow ui → http://127.0.0.1:5000")
 
     return 0
