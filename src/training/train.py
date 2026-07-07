@@ -1,10 +1,22 @@
 """
-Baseline seizure detection model with MLflow tracking.
-Usage: python src/training/train.py --data data/processed/tusz/aaaaaajy/aaaaaajy.npz
+Baseline seizure detection training script with MLflow tracking.
+
+This file handles:
+- loading processed EEG windows
+- splitting data into train/validation/test
+- training the baseline CNN
+- evaluating model performance
+- logging metrics and artifacts to MLflow
+
+The CNN model architecture is stored separately in:
+    src/models/cnn.py
 """
+
 import argparse
-import sys
 import csv
+import sys
+import time
+from pathlib import Path
 
 import mlflow
 import mlflow.pytorch
@@ -12,29 +24,17 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset, random_split
-from pathlib import Path
 
-class SeizureCNN(nn.Module):
-    """Lightweight CNN for EEG seizure detection (quantization-friendly)"""
-    def __init__(self, n_channels=20, n_timepoints=512, n_classes=2):
-        super().__init__()
-        self.conv1 = nn.Conv2d(1, 16, kernel_size=(1, 25), padding=(0, 12))
-        self.bn1   = nn.BatchNorm2d(16)
-        self.conv2 = nn.Conv2d(16, 32, kernel_size=(n_channels, 1))
-        self.bn2   = nn.BatchNorm2d(32)
-        self.pool  = nn.AdaptiveAvgPool2d((1, 32))
-        self.fc1   = nn.Linear(32 * 32, 64)
-        self.fc2   = nn.Linear(64, n_classes)
-        self.drop  = nn.Dropout(0.5)
-        self.relu  = nn.ReLU()
 
-    def forward(self, x):
-        x = self.relu(self.bn1(self.conv1(x)))
-        x = self.relu(self.bn2(self.conv2(x)))
-        x = self.pool(x)
-        x = x.view(x.size(0), -1)
-        x = self.drop(self.relu(self.fc1(x)))
-        return self.fc2(x)
+# Project root is needed so this file works when run directly:
+# python src/training/train.py
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+
+from src.models.cnn import SeizureCNN
 
 def split_dataset(dataset, train_ratio=0.70, val_ratio=0.15, seed=42):
     """
@@ -688,8 +688,6 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
     model = SeizureCNN() # Create the CNN model
     optimizer = torch.optim.Adam(model.parameters(), lr=lr) # Adam optimizer updates model weights during training.
     criterion = nn.CrossEntropyLoss() # Two-class classification: class 0 = non-seizure, 1 = seizure
-
-    PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
     MLFLOW_DB = PROJECT_ROOT / "mlflow.db"
     MLFLOW_ARTIFACTS = PROJECT_ROOT / "mlartifacts"
