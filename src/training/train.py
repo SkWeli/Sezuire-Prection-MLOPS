@@ -236,6 +236,101 @@ def evaluate_model(model, loader, criterion, window_step_s=2.0):
         "false_alarms_per_hour": false_alarms_per_hour,
     }
 
+def log_evaluation_metrics_to_mlflow(prefix, metrics, step=None):
+    """
+    Log evaluation metrics to MLflow using a consistent name prefix.
+
+    Example:
+        prefix="val"  → val_accuracy, val_precision, val_f1
+        prefix="test" → test_accuracy, test_precision, test_f1
+
+    Why this helper is useful:
+    - Keeps MLflow metric names consistent.
+    - Avoids repeating the same log_metrics code many times.
+    - Skips invalid values such as NaN AUC.
+    """
+
+    metric_keys = [
+        "loss",
+        "accuracy",
+        "precision",
+        "recall_sensitivity",
+        "specificity",
+        "f1",
+        "auc",
+        "tp",
+        "tn",
+        "fp",
+        "fn",
+        "evaluated_duration_seconds",
+        "evaluated_duration_hours",
+        "false_alarms_per_hour",
+    ]
+
+    mlflow_metrics = {}
+
+    for key in metric_keys:
+        if key not in metrics:
+            continue
+
+        value = float(metrics[key])
+
+        # AUC can become NaN if a split contains only one class.
+        # MLflow should only receive valid numeric values.
+        if not np.isfinite(value):
+            continue
+
+        mlflow_metrics[f"{prefix}_{key}"] = value
+
+    if step is None:
+        mlflow.log_metrics(mlflow_metrics)
+    else:
+        mlflow.log_metrics(mlflow_metrics, step=step)
+
+def save_test_metrics_report(metrics, output_dir, run_name):
+    """
+    Save final test results as a readable text report.
+
+    This file will be logged as an MLflow artifact.
+    It is useful for screenshots, thesis tables, and viva explanation.
+    """
+
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    report_path = output_dir / f"{run_name}_test_metrics.txt"
+
+    with open(report_path, "w", encoding="utf-8") as file:
+        file.write("Final Test Evaluation Report\n")
+        file.write("============================\n\n")
+
+        file.write(f"Test loss                    : {metrics['loss']:.4f}\n")
+        file.write(f"Test accuracy                : {metrics['accuracy']:.4f}\n")
+        file.write(f"Precision                    : {metrics['precision']:.4f}\n")
+        file.write(f"Recall / Sensitivity         : {metrics['recall_sensitivity']:.4f}\n")
+        file.write(f"Specificity                  : {metrics['specificity']:.4f}\n")
+        file.write(f"F1-score                     : {metrics['f1']:.4f}\n")
+
+        if np.isfinite(metrics["auc"]):
+            file.write(f"AUC                          : {metrics['auc']:.4f}\n")
+        else:
+            file.write("AUC                          : Not available\n")
+
+        file.write(f"Evaluated duration hours     : {metrics['evaluated_duration_hours']:.4f}\n")
+        file.write(f"False alarms per hour        : {metrics['false_alarms_per_hour']:.4f}\n")
+
+        file.write("\nConfusion Matrix\n")
+        file.write("----------------\n")
+        file.write("                 Predicted\n")
+        file.write("               Non-Seizure  Seizure\n")
+        file.write(f"Actual Non-Seizure   {metrics['tn']:>6}   {metrics['fp']:>6}\n")
+        file.write(f"Actual Seizure       {metrics['fn']:>6}   {metrics['tp']:>6}\n")
+
+        file.write("\nReported accuracy source: held-out test set\n")
+        file.write("False alarm type       : window-level false positives per hour\n")
+
+    return report_path
+
 def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None, window_overlap_frac=0.5):
     """
     Train the baseline seizure detection model.
@@ -349,6 +444,14 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
     with mlflow.start_run():
         mlflow.log_params({
+        # EEG window and evaluation settings
+        "sampling_rate_hz": sampling_rate,
+        "window_duration_s": window_duration_s,
+        "window_overlap_frac": window_overlap_frac,
+        "window_step_s": window_step_s,
+        "evaluation_level": "window_level",
+        "false_alarm_definition": "false_positive_windows_per_evaluated_hour",
+
         # Training configuration
         "epochs": epochs,
         "lr": lr,
@@ -422,19 +525,20 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
             # Log both training and validation metrics to MLflow.
             # This allows comparison between learning performance and generalization.
+            # Log training metrics for this epoch.
             mlflow.log_metrics({
                 "train_loss": train_loss,
                 "train_accuracy": train_acc,
-
-                # Validation metrics are logged every epoch.
-                "val_loss": val_metrics["loss"],
-                "val_accuracy": val_metrics["accuracy"],
-                "val_precision": val_metrics["precision"],
-                "val_recall_sensitivity": val_metrics["recall_sensitivity"],
-                "val_specificity": val_metrics["specificity"],
-                "val_f1": val_metrics["f1"],
-                "val_false_alarms_per_hour": val_metrics["false_alarms_per_hour"],
             }, step=epoch + 1)
+
+            # Log all validation evaluation metrics with the prefix "val".
+            # This includes accuracy, precision, recall, specificity, F1, AUC,
+            # confusion matrix values, and false alarms per hour.
+            log_evaluation_metrics_to_mlflow(
+                prefix="val",
+                metrics=val_metrics,
+                step=epoch + 1
+            )
 
             # AUC can be NaN if the split contains only one class.
             # MLflow should log it only when it is valid.
@@ -446,6 +550,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
                 f"— train_loss: {train_loss:.4f} "
                 f"train_acc: {train_acc:.3f} "
                 f"val_loss: {val_loss:.4f} "
+                f"val_acc: {val_metrics['accuracy']:.3f} "
                 f"val_f1: {val_metrics['f1']:.3f}"
             )
         # Final test evaluation.
@@ -453,27 +558,28 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
         final_reported_accuracy = test_metrics["accuracy"]
 
-        # Log final test metrics.
-        mlflow.log_metrics({
-            "test_loss": test_metrics["loss"],
-            "test_accuracy": test_metrics["accuracy"],
-            "final_test_accuracy": final_reported_accuracy,
-            "test_precision": test_metrics["precision"],
-            "test_recall_sensitivity": test_metrics["recall_sensitivity"],
-            "test_specificity": test_metrics["specificity"],
-            "test_f1": test_metrics["f1"],
+        # Log all final test metrics with the prefix "test".
+        # These are the official final evaluation metrics.
+        log_evaluation_metrics_to_mlflow(
+            prefix="test",
+            metrics=test_metrics
+        )
 
-            # Confusion matrix values
-            "test_tp": test_metrics["tp"],
-            "test_tn": test_metrics["tn"],
-            "test_fp": test_metrics["fp"],
-            "test_fn": test_metrics["fn"],
+        # Log final reported accuracy separately for easy visibility in MLflow.
+        mlflow.log_metric("final_test_accuracy", final_reported_accuracy)
 
-            # False alarm analysis
-            "test_evaluated_duration_hours": test_metrics["evaluated_duration_hours"],
-            "test_false_alarms_per_hour": test_metrics["false_alarms_per_hour"],
-        })
+        # Save a readable test report and attach it to the MLflow run.
+        report_path = save_test_metrics_report(
+            metrics=test_metrics,
+            output_dir=PROJECT_ROOT / "reports" / "metrics",
+            run_name=data_path_str
+        )
 
+        mlflow.log_artifact(
+            str(report_path),
+            artifact_path="reports"
+        )
+        
         # AUC can be NaN if the test split has only one class.
         # We log it only when it is mathematically valid.
         if not np.isnan(test_metrics["auc"]):
