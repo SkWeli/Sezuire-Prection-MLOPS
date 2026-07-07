@@ -287,7 +287,7 @@ def log_evaluation_metrics_to_mlflow(prefix, metrics, step=None):
     else:
         mlflow.log_metrics(mlflow_metrics, step=step)
 
-def save_test_metrics_report(metrics, output_dir, run_name):
+def save_test_metrics_report(metrics, output_dir, run_name, baseline_metrics=None):
     """
     Save final test results as a readable text report.
 
@@ -326,10 +326,160 @@ def save_test_metrics_report(metrics, output_dir, run_name):
         file.write(f"Actual Non-Seizure   {metrics['tn']:>6}   {metrics['fp']:>6}\n")
         file.write(f"Actual Seizure       {metrics['fn']:>6}   {metrics['tp']:>6}\n")
 
+        if baseline_metrics is not None:
+            file.write("\nMajority-Class Baseline\n")
+            file.write("-----------------------\n")
+            file.write(
+                f"Majority class                : {baseline_metrics['majority_class']} "
+                f"(0=non-seizure, 1=seizure)\n"
+            )
+            file.write(f"Baseline accuracy             : {baseline_metrics['accuracy']:.4f}\n")
+            file.write(f"Baseline precision            : {baseline_metrics['precision']:.4f}\n")
+            file.write(f"Baseline recall/sensitivity   : {baseline_metrics['recall_sensitivity']:.4f}\n")
+            file.write(f"Baseline specificity          : {baseline_metrics['specificity']:.4f}\n")
+            file.write(f"Baseline F1-score             : {baseline_metrics['f1']:.4f}\n")
+
+            if np.isfinite(baseline_metrics["auc"]):
+                file.write(f"Baseline AUC                  : {baseline_metrics['auc']:.4f}\n")
+            else:
+                file.write("Baseline AUC                  : Not available\n")
+
+            file.write(
+                f"Baseline false alarms/hour    : "
+                f"{baseline_metrics['false_alarms_per_hour']:.4f}\n"
+            )
+
+            file.write("\nModel vs Baseline\n")
+            file.write("-----------------\n")
+            file.write(
+                f"Accuracy difference           : "
+                f"{metrics['accuracy'] - baseline_metrics['accuracy']:+.4f}\n"
+            )
+            file.write(
+                f"F1-score difference           : "
+                f"{metrics['f1'] - baseline_metrics['f1']:+.4f}\n"
+            )
+            file.write(
+                f"False alarms/hour difference  : "
+                f"{metrics['false_alarms_per_hour'] - baseline_metrics['false_alarms_per_hour']:+.4f}\n"
+            )
+
+
         file.write("\nReported accuracy source: held-out test set\n")
         file.write("False alarm type       : window-level false positives per hour\n")
 
     return report_path
+
+def get_labels_from_split(split_dataset):
+    """
+    Extract labels from a dataset split created by random_split().
+
+    Why this is needed:
+    - random_split() returns a Subset object.
+    - The labels are still stored inside the original TensorDataset.
+    - We use the split indices to collect only the labels belonging to that split.
+    """
+
+    labels_tensor = split_dataset.dataset.tensors[1]
+
+    labels = [
+        int(labels_tensor[index].item())
+        for index in split_dataset.indices
+    ]
+
+    return np.asarray(labels)
+
+
+def compute_majority_class_baseline(train_dataset, test_dataset, window_step_s=2.0):
+    """
+    Compute majority-class baseline performance on the test set.
+
+    Majority-class baseline:
+        1. Look at the training set labels.
+        2. Find which class appears more often.
+        3. Predict that same class for every test sample.
+
+    Why this is useful:
+        If the CNN performs worse than this baseline, the model is not useful yet.
+        If the CNN performs better, it shows the model learned something beyond class imbalance.
+    """
+
+    train_labels = get_labels_from_split(train_dataset)
+    test_labels = get_labels_from_split(test_dataset)
+
+    # Count class distribution in training data.
+    # class 0 = non-seizure
+    # class 1 = seizure
+    train_class_counts = np.bincount(train_labels, minlength=2)
+
+    majority_class = int(np.argmax(train_class_counts))
+
+    # Predict the majority class for every test sample.
+    baseline_predictions = np.full_like(
+        test_labels,
+        fill_value=majority_class
+    )
+
+    # AUC needs a score for class 1.
+    # Since this baseline always predicts one class, the score is constant.
+    if majority_class == 1:
+        baseline_scores = np.ones_like(test_labels, dtype=float)
+    else:
+        baseline_scores = np.zeros_like(test_labels, dtype=float)
+
+    # Confusion matrix values.
+    # Positive class = seizure.
+    tp = int(np.sum((test_labels == 1) & (baseline_predictions == 1)))
+    tn = int(np.sum((test_labels == 0) & (baseline_predictions == 0)))
+    fp = int(np.sum((test_labels == 0) & (baseline_predictions == 1)))
+    fn = int(np.sum((test_labels == 1) & (baseline_predictions == 0)))
+
+    total_samples = len(test_labels)
+
+    accuracy = (tp + tn) / total_samples
+    precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
+    recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
+    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+
+    f1 = (
+        2 * precision * recall / (precision + recall)
+        if (precision + recall) > 0
+        else 0.0
+    )
+
+    auc = compute_binary_auc(test_labels, baseline_scores)
+
+    # Same window-level false alarm calculation used for the CNN model.
+    evaluated_duration_seconds = total_samples * window_step_s
+    evaluated_duration_hours = evaluated_duration_seconds / 3600.0
+
+    false_alarms_per_hour = (
+        fp / evaluated_duration_hours
+        if evaluated_duration_hours > 0
+        else 0.0
+    )
+
+    return {
+        "majority_class": majority_class,
+        "train_non_seizure_count": int(train_class_counts[0]),
+        "train_seizure_count": int(train_class_counts[1]),
+
+        "accuracy": accuracy,
+        "precision": precision,
+        "recall_sensitivity": recall,
+        "specificity": specificity,
+        "f1": f1,
+        "auc": auc,
+
+        "tp": tp,
+        "tn": tn,
+        "fp": fp,
+        "fn": fn,
+
+        "evaluated_duration_seconds": evaluated_duration_seconds,
+        "evaluated_duration_hours": evaluated_duration_hours,
+        "false_alarms_per_hour": false_alarms_per_hour,
+    }
 
 def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None, window_overlap_frac=0.5):
     """
@@ -558,12 +708,49 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
         final_reported_accuracy = test_metrics["accuracy"]
 
+        # Majority-class baseline comparison.
+        # This baseline uses only the training labels to decide the most common class,
+        # then predicts that class for every test window.
+        baseline_metrics = compute_majority_class_baseline(
+            train_dataset=train_dataset,
+            test_dataset=test_dataset,
+            window_step_s=window_step_s
+        )
+
         # Log all final test metrics with the prefix "test".
         # These are the official final evaluation metrics.
         log_evaluation_metrics_to_mlflow(
             prefix="test",
             metrics=test_metrics
         )
+
+        # Log majority-class baseline metrics.
+        # These allow direct comparison between the CNN and a simple baseline.
+        log_evaluation_metrics_to_mlflow(
+            prefix="baseline",
+            metrics=baseline_metrics
+        )
+
+        mlflow.log_params({
+            "baseline_type": "majority_class",
+            "baseline_majority_class": baseline_metrics["majority_class"],
+            "baseline_train_non_seizure_count": baseline_metrics["train_non_seizure_count"],
+            "baseline_train_seizure_count": baseline_metrics["train_seizure_count"],
+        })
+
+        # Log model improvement over the baseline.
+        mlflow.log_metrics({
+            "model_vs_baseline_accuracy_delta": (
+                test_metrics["accuracy"] - baseline_metrics["accuracy"]
+            ),
+            "model_vs_baseline_f1_delta": (
+                test_metrics["f1"] - baseline_metrics["f1"]
+            ),
+            "model_vs_baseline_false_alarm_delta": (
+                test_metrics["false_alarms_per_hour"]
+                - baseline_metrics["false_alarms_per_hour"]
+            ),
+        })
 
         # Log final reported accuracy separately for easy visibility in MLflow.
         mlflow.log_metric("final_test_accuracy", final_reported_accuracy)
@@ -572,7 +759,8 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
         report_path = save_test_metrics_report(
             metrics=test_metrics,
             output_dir=PROJECT_ROOT / "reports" / "metrics",
-            run_name=data_path_str
+            run_name=data_path_str,
+            baseline_metrics=baseline_metrics
         )
 
         mlflow.log_artifact(
@@ -608,6 +796,41 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
         print("               Non-Seizure  Seizure")
         print(f"Actual Non-Seizure   {test_metrics['tn']:>6}   {test_metrics['fp']:>6}")
         print(f"Actual Seizure       {test_metrics['fn']:>6}   {test_metrics['tp']:>6}")
+
+        print("\nMajority-Class Baseline")
+        print("-----------------------")
+        print(
+            f"Majority class                : "
+            f"{baseline_metrics['majority_class']} "
+            f"(0=non-seizure, 1=seizure)"
+        )
+        print(f"Baseline accuracy             : {baseline_metrics['accuracy']:.3f}")
+        print(f"Baseline precision            : {baseline_metrics['precision']:.3f}")
+        print(f"Baseline recall/sensitivity   : {baseline_metrics['recall_sensitivity']:.3f}")
+        print(f"Baseline specificity          : {baseline_metrics['specificity']:.3f}")
+        print(f"Baseline F1-score             : {baseline_metrics['f1']:.3f}")
+
+        if np.isfinite(baseline_metrics["auc"]):
+            print(f"Baseline AUC                  : {baseline_metrics['auc']:.3f}")
+        else:
+            print("Baseline AUC                  : Not available")
+
+        print(f"Baseline false alarms/hour    : {baseline_metrics['false_alarms_per_hour']:.2f}")
+
+        print("\nModel vs Baseline")
+        print("-----------------")
+        print(
+            f"Accuracy difference           : "
+            f"{test_metrics['accuracy'] - baseline_metrics['accuracy']:+.3f}"
+        )
+        print(
+            f"F1-score difference           : "
+            f"{test_metrics['f1'] - baseline_metrics['f1']:+.3f}"
+        )
+        print(
+            f"False alarms/hour difference  : "
+            f"{test_metrics['false_alarms_per_hour'] - baseline_metrics['false_alarms_per_hour']:+.2f}"
+        )
 
         print("\nReported accuracy source     : held-out test set")
 
