@@ -31,6 +31,8 @@ def log_evaluation_metrics_to_mlflow(prefix, metrics, step=None):
     metric_keys = [
         "loss",
         "accuracy",
+        "balanced_accuracy",
+        "decision_threshold",
         "precision",
         "recall_sensitivity",
         "specificity",
@@ -88,6 +90,8 @@ def save_test_metrics_report(metrics, output_dir, run_name, baseline_metrics=Non
 
         file.write(f"Test loss                    : {metrics['loss']:.4f}\n")
         file.write(f"Test accuracy                : {metrics['accuracy']:.4f}\n")
+        file.write(f"Balanced accuracy            : {metrics['balanced_accuracy']:.4f}\n")
+        file.write(f"Decision threshold           : {metrics['decision_threshold']:.4f}\n")
         file.write(f"Precision                    : {metrics['precision']:.4f}\n")
         file.write(f"Recall / Sensitivity         : {metrics['recall_sensitivity']:.4f}\n")
         file.write(f"Specificity                  : {metrics['specificity']:.4f}\n")
@@ -172,6 +176,8 @@ def save_cnn_baseline_results_table(test_metrics, baseline_metrics, output_dir, 
     fieldnames = [
         "model",
         "accuracy",
+        "balanced_accuracy",
+        "decision_threshold",
         "precision",
         "recall_sensitivity",
         "specificity",
@@ -188,6 +194,8 @@ def save_cnn_baseline_results_table(test_metrics, baseline_metrics, output_dir, 
         {
             "model": "SeizureCNN",
             "accuracy": test_metrics["accuracy"],
+            "balanced_accuracy": test_metrics["balanced_accuracy"],
+            "decision_threshold": test_metrics["decision_threshold"],
             "precision": test_metrics["precision"],
             "recall_sensitivity": test_metrics["recall_sensitivity"],
             "specificity": test_metrics["specificity"],
@@ -202,6 +210,8 @@ def save_cnn_baseline_results_table(test_metrics, baseline_metrics, output_dir, 
         {
             "model": "MajorityClassBaseline",
             "accuracy": baseline_metrics["accuracy"],
+            "balanced_accuracy": baseline_metrics["balanced_accuracy"],
+            "decision_threshold": baseline_metrics.get("decision_threshold", 0.5),
             "precision": baseline_metrics["precision"],
             "recall_sensitivity": baseline_metrics["recall_sensitivity"],
             "specificity": baseline_metrics["specificity"],

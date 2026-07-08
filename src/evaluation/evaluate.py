@@ -135,12 +135,19 @@ def evaluate_saved_model(data_path, model_path, batch_size=32, window_overlap_fr
     model, checkpoint = load_seizure_cnn_checkpoint(model_path)
     criterion = nn.CrossEntropyLoss()
 
+    # Use the tuned threshold saved during training.
+    # If the checkpoint does not contain it, fall back to 0.5.
+    decision_threshold = float(checkpoint.get("decision_threshold", 0.5))
+
+    print(f"  Decision threshold: {decision_threshold:.2f}")
+
     # Evaluate model on the held-out test set.
     test_metrics = evaluate_model(
-        model,
-        test_loader,
-        criterion,
-        window_step_s=window_step_s
+        model=model,
+        loader=test_loader,
+        criterion=criterion,
+        window_step_s=window_step_s,
+        decision_threshold=decision_threshold
     )
 
     # Majority-class baseline uses training labels and predicts one class for test data.
@@ -178,6 +185,8 @@ def evaluate_saved_model(data_path, model_path, batch_size=32, window_overlap_fr
             "model_path": str(model_path),
             "data_path": str(data_path),
             "model_name": checkpoint.get("model_name", "SeizureCNN"),
+            "decision_threshold": decision_threshold,
+            "threshold_source": "saved_training_checkpoint",
             "batch_size": batch_size,
             "sampling_rate_hz": sampling_rate,
             "window_duration_s": window_duration_s,
@@ -217,6 +226,8 @@ def evaluate_saved_model(data_path, model_path, batch_size=32, window_overlap_fr
     print("-----------------------------")
     print(f"Test accuracy                : {test_metrics['accuracy']:.3f}")
     print(f"Final reported accuracy      : {final_reported_accuracy:.3f}")
+    print(f"Balanced accuracy            : {test_metrics['balanced_accuracy']:.3f}")
+    print(f"Decision threshold           : {test_metrics['decision_threshold']:.2f}")
     print(f"Precision                    : {test_metrics['precision']:.3f}")
     print(f"Recall / Sensitivity         : {test_metrics['recall_sensitivity']:.3f}")
     print(f"Specificity                  : {test_metrics['specificity']:.3f}")

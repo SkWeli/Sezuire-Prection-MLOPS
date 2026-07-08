@@ -69,7 +69,7 @@ def compute_binary_auc(y_true, y_score):
     return float(auc)
 
 
-def evaluate_model(model, loader, criterion, window_step_s=2.0):
+def evaluate_model(model, loader, criterion, window_step_s=2.0, decision_threshold=0.5):
     """
     Evaluate a trained model on validation or test data.
 
@@ -116,7 +116,9 @@ def evaluate_model(model, loader, criterion, window_step_s=2.0):
             probabilities = torch.softmax(outputs, dim=1)
             seizure_scores = probabilities[:, 1]
 
-            predictions = outputs.argmax(1)
+            # Convert seizure probability into final class prediction.
+            # A threshold of 0.5 is the default, but later we tune this using validation data.
+            predictions = (seizure_scores >= decision_threshold).long()
 
             all_true.extend(yb.cpu().numpy())
             all_pred.extend(predictions.cpu().numpy())
@@ -137,6 +139,10 @@ def evaluate_model(model, loader, criterion, window_step_s=2.0):
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+
+    # Balanced accuracy gives equal importance to seizure and non-seizure classes.
+    # This is useful when the dataset is imbalanced.
+    balanced_accuracy = (recall + specificity) / 2.0
 
     f1 = (
         2 * precision * recall / (precision + recall)
@@ -162,11 +168,13 @@ def evaluate_model(model, loader, criterion, window_step_s=2.0):
     return {
         "loss": avg_loss,
         "accuracy": accuracy,
+        "balanced_accuracy": balanced_accuracy,
         "precision": precision,
         "recall_sensitivity": recall,
         "specificity": specificity,
         "f1": f1,
         "auc": auc,
+        "decision_threshold": decision_threshold,
 
         # Confusion matrix values
         "tp": tp,
@@ -180,6 +188,64 @@ def evaluate_model(model, loader, criterion, window_step_s=2.0):
         "false_alarms_per_hour": false_alarms_per_hour,
     }
 
+def find_best_threshold(
+    model,
+    loader,
+    criterion,
+    window_step_s=2.0,
+    metric_name="balanced_accuracy",
+    min_threshold=0.05,
+    max_threshold=0.95,
+    step=0.01
+):
+    """
+    Find the best seizure decision threshold using validation data.
+
+    Why threshold tuning is needed:
+    - The default threshold 0.5 may not be suitable for imbalanced EEG data.
+    - A low threshold can predict too many seizures.
+    - A high threshold can reduce false alarms but may miss seizures.
+    - Validation data is used to choose the threshold before final test evaluation.
+
+    metric_name:
+        The metric used to select the best threshold.
+        For this project, balanced_accuracy is useful because it considers both:
+        - sensitivity
+        - specificity
+    """
+
+    thresholds = np.arange(
+        min_threshold,
+        max_threshold + step,
+        step
+    )
+
+    best_threshold = 0.5
+    best_score = -1.0
+    best_metrics = None
+
+    for threshold in thresholds:
+        metrics = evaluate_model(
+            model=model,
+            loader=loader,
+            criterion=criterion,
+            window_step_s=window_step_s,
+            decision_threshold=float(threshold)
+        )
+
+        score = metrics[metric_name]
+
+        if score > best_score:
+            best_score = score
+            best_threshold = float(threshold)
+            best_metrics = metrics
+
+    return {
+        "best_threshold": best_threshold,
+        "best_score": best_score,
+        "metric_name": metric_name,
+        "best_metrics": best_metrics,
+    }
 
 def get_labels_from_split(split_dataset):
     """
@@ -244,7 +310,7 @@ def compute_majority_class_baseline(train_dataset, test_dataset, window_step_s=2
     precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
     recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
     specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
-
+    balanced_accuracy = (recall + specificity) / 2.0
     f1 = (
         2 * precision * recall / (precision + recall)
         if (precision + recall) > 0
@@ -271,6 +337,8 @@ def compute_majority_class_baseline(train_dataset, test_dataset, window_step_s=2
         "precision": precision,
         "recall_sensitivity": recall,
         "specificity": specificity,
+        "balanced_accuracy": balanced_accuracy,
+        "decision_threshold": 0.5,
         "f1": f1,
         "auc": auc,
 

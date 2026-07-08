@@ -34,7 +34,12 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 from src.models.cnn import SeizureCNN
-from src.evaluation.metrics import evaluate_model, compute_majority_class_baseline
+from src.evaluation.metrics import (
+    evaluate_model,
+    find_best_threshold,
+    get_labels_from_split,
+    compute_majority_class_baseline,
+)
 from src.evaluation.reporting import (
     log_evaluation_metrics_to_mlflow,
     save_test_metrics_report,
@@ -142,7 +147,26 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
     model = SeizureCNN() # Create the CNN model
     optimizer = torch.optim.Adam(model.parameters(), lr=lr) # Adam optimizer updates model weights during training.
-    criterion = nn.CrossEntropyLoss() # Two-class classification: class 0 = non-seizure, 1 = seizure
+    # Calculate class weights from the training split only.
+    # This prevents the model from being biased toward the majority class.
+    train_labels = get_labels_from_split(train_dataset)
+    train_class_counts = np.bincount(train_labels, minlength=2)
+
+    # Weighted CrossEntropyLoss gives more importance to the minority class.
+    # Example:
+    # If non-seizure windows are fewer, class 0 receives a higher weight.
+    class_weights = len(train_labels) / (2.0 * np.maximum(train_class_counts, 1))
+
+    class_weights_tensor = torch.tensor(
+        class_weights,
+        dtype=torch.float32
+    )
+
+    criterion = nn.CrossEntropyLoss(weight=class_weights_tensor)
+
+    print("  Class imbalance handling: weighted CrossEntropyLoss")
+    print(f"  Train class counts      : non-seizure={train_class_counts[0]}, seizure={train_class_counts[1]}")
+    print(f"  Class weights           : non-seizure={class_weights[0]:.3f}, seizure={class_weights[1]:.3f}")
 
     MLFLOW_DB = PROJECT_ROOT / "mlflow.db"
     MLFLOW_ARTIFACTS = PROJECT_ROOT / "mlartifacts"
@@ -228,7 +252,15 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             # Evaluate on validation data after each epoch.
             # Validation metrics show how well the model performs on unseen data
             # during training, without updating the model weights.
-            val_metrics = evaluate_model(model, val_loader, criterion, window_step_s=window_step_s)
+            # During training, validation is shown using the default 0.5 threshold.
+            # After training, we tune the threshold using the full validation split.
+            val_metrics = evaluate_model(
+                model=model,
+                loader=val_loader,
+                criterion=criterion,
+                window_step_s=window_step_s,
+                decision_threshold=0.5
+            )
             val_loss = val_metrics["loss"]
             val_acc = val_metrics["accuracy"]
 
@@ -263,8 +295,35 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
                 f"val_f1: {val_metrics['f1']:.3f}"
             )
         # Final test evaluation.
-        test_metrics = evaluate_model(model, test_loader, criterion, window_step_s=window_step_s)
+        # Tune the decision threshold using validation data.
+        # We select the threshold that gives the best balanced accuracy.
+        threshold_result = find_best_threshold(
+            model=model,
+            loader=val_loader,
+            criterion=criterion,
+            window_step_s=window_step_s,
+            metric_name="balanced_accuracy"
+        )
 
+        best_threshold = threshold_result["best_threshold"]
+        best_val_threshold_metrics = threshold_result["best_metrics"]
+
+        print("\nThreshold Tuning")
+        print("----------------")
+        print(f"Selection metric             : {threshold_result['metric_name']}")
+        print(f"Best validation threshold    : {best_threshold:.2f}")
+        print(f"Best validation balanced acc : {threshold_result['best_score']:.3f}")
+        
+        # Final test evaluation uses the threshold selected from validation data.
+        # The test set is not used to choose the threshold.
+        test_metrics = evaluate_model(
+            model=model,
+            loader=test_loader,
+            criterion=criterion,
+            window_step_s=window_step_s,
+            decision_threshold=best_threshold
+        )
+        
         final_reported_accuracy = test_metrics["accuracy"]
 
         # Majority-class baseline comparison.
@@ -292,6 +351,18 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             metrics=test_metrics
         )
 
+        # Log validation threshold tuning result.
+        log_evaluation_metrics_to_mlflow(
+            prefix="val_best_threshold",
+            metrics=best_val_threshold_metrics
+        )
+
+        mlflow.log_metric("best_decision_threshold", best_threshold)
+        mlflow.log_metric(
+            "best_val_balanced_accuracy",
+            threshold_result["best_score"]
+        )
+
         # Log majority-class baseline metrics.
         # These allow direct comparison between the CNN and a simple baseline.
         log_evaluation_metrics_to_mlflow(
@@ -304,6 +375,17 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             "baseline_majority_class": baseline_metrics["majority_class"],
             "baseline_train_non_seizure_count": baseline_metrics["train_non_seizure_count"],
             "baseline_train_seizure_count": baseline_metrics["train_seizure_count"],
+
+            # Class imbalance handling
+            "class_imbalance_handling": "weighted_cross_entropy",
+            "class_0_weight_non_seizure": float(class_weights[0]),
+            "class_1_weight_seizure": float(class_weights[1]),
+            "train_non_seizure_count": int(train_class_counts[0]),
+            "train_seizure_count": int(train_class_counts[1]),
+
+            # Threshold tuning
+            "threshold_tuning": "validation_set_grid_search",
+            "threshold_selection_metric": "balanced_accuracy",
         })
 
         # Log model improvement over the baseline.
@@ -358,6 +440,8 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
         print(f"Test loss                    : {test_metrics['loss']:.4f}")
         print(f"Test accuracy                : {test_metrics['accuracy']:.3f}")
         print(f"Final reported accuracy      : {final_reported_accuracy:.3f}")
+        print(f"Balanced accuracy            : {test_metrics['balanced_accuracy']:.3f}")
+        print(f"Decision threshold           : {test_metrics['decision_threshold']:.2f}")
         print(f"Precision                    : {test_metrics['precision']:.3f}")
         print(f"Recall / Sensitivity         : {test_metrics['recall_sensitivity']:.3f}")
         print(f"Specificity                  : {test_metrics['specificity']:.3f}")
@@ -441,6 +525,10 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
                 "window_duration_s": window_duration_s,
                 "window_overlap_frac": window_overlap_frac,
                 "window_step_s": window_step_s,
+
+                # Store tuned threshold so evaluate.py can use the same decision rule.
+                "decision_threshold": best_threshold,
+                "threshold_selection_metric": "balanced_accuracy",
             },
             model_checkpoint_path
         )
