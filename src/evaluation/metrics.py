@@ -193,7 +193,7 @@ def find_best_threshold(
     loader,
     criterion,
     window_step_s=2.0,
-    metric_name="balanced_accuracy",
+    metric_name="f1",
     min_threshold=0.05,
     max_threshold=0.95,
     step=0.01
@@ -233,7 +233,14 @@ def find_best_threshold(
             decision_threshold=float(threshold)
         )
 
-        score = metrics[metric_name]
+        # Calculate F2-score dynamically if requested
+        # F2 weighs recall twice as high as precision.
+        if metric_name == "f2":
+            p = metrics["precision"]
+            r = metrics["recall_sensitivity"]
+            score = (5 * p * r) / (4 * p + r) if (4 * p + r) > 0 else 0.0
+        else:
+            score = metrics.get(metric_name, 0.0)
 
         if score > best_score:
             best_score = score
@@ -249,21 +256,55 @@ def find_best_threshold(
 
 def get_labels_from_split(split_dataset):
     """
-    Extract labels from a dataset split created by random_split().
+    Extract labels from a dataset split.
 
-    random_split() returns a Subset object.
-    The labels are still stored in the original TensorDataset.
+    Why this helper exists:
+        Class imbalance handling needs access to the training labels
+        so class weights can be calculated from the TRAIN split only.
+
+    Important implementation detail:
+        This project now supports two split strategies:
+
+        1. Window-level split:
+           Uses torch.utils.data.random_split(), which returns Subset objects.
+           A Subset stores:
+               - split_dataset.dataset  -> the original TensorDataset
+               - split_dataset.indices  -> indices belonging to this split
+
+        2. Patient-level split:
+           Builds TensorDataset objects directly for train/val/test after
+           separating patients first. In this case, the split itself is
+           already a TensorDataset and does NOT have .dataset or .indices.
+
+        Therefore this function must handle both:
+        - Subset
+        - TensorDataset
+
+    Returns:
+        Numpy array of labels for the given split.
     """
 
-    labels_tensor = split_dataset.dataset.tensors[1]
+    # Case 1:
+    # random_split() returns a Subset object.
+    # We need to use the stored indices to extract only the labels
+    # belonging to this split from the parent TensorDataset.
+    if hasattr(split_dataset, "dataset") and hasattr(split_dataset, "indices"):
+        labels_tensor = split_dataset.dataset.tensors[1]
+        split_labels = labels_tensor[split_dataset.indices]
+        return split_labels.cpu().numpy()
 
-    labels = [
-        int(labels_tensor[index].item())
-        for index in split_dataset.indices
-    ]
+    # Case 2:
+    # Patient-level splitting builds a TensorDataset directly.
+    # In that case, labels are already stored as the second tensor.
+    elif hasattr(split_dataset, "tensors"):
+        labels_tensor = split_dataset.tensors[1]
+        return labels_tensor.cpu().numpy()
 
-    return np.asarray(labels)
-
+    # Any other dataset type is unsupported for now.
+    raise TypeError(
+        "Unsupported dataset type for label extraction. "
+        f"Got: {type(split_dataset)}"
+    )
 
 def compute_majority_class_baseline(train_dataset, test_dataset, window_step_s=2.0):
     """

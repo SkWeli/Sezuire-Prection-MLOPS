@@ -19,13 +19,12 @@ from src.validation.rdf_generator import generate_tusz_ttl
 # Small TUSZ subset for development.
 # We use 5 patients instead of the full dataset because full TUSZ is too large
 # to process quickly on a normal laptop.
-TUSZ_PATIENTS = [
-    "aaaaaajy",
-    "aaaaaayf",
-    "aaaaaazz",
-    "aaaaabep",
-    "aaaaabxe",
-]
+def get_tusz_patients(n=25):
+    dev_dir = Path("data/raw/tusz/dev")
+    patients = sorted([p.name for p in dev_dir.iterdir() if p.is_dir()])
+    return patients[:n]
+
+TUSZ_PATIENTS = get_tusz_patients(25)
 
 # CHB-MIT is downloaded inside the PhysioNet folder structure.
 # The actual subject folders chb01, chb02, chb03 are inside this path.

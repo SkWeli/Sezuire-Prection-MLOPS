@@ -47,7 +47,7 @@ from src.evaluation.reporting import (
     save_test_metrics_report,
     save_cnn_baseline_results_table,
 )
-from src.evaluation.splits import split_dataset
+from src.evaluation.splits import split_dataset, split_dataset_by_patient
 
 def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None, window_overlap_frac=0.5, model_name="cnn"):
     """
@@ -67,25 +67,49 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
     start_time = time.perf_counter()
 
+    patient_level_split = False  # tracks which split strategy was actually used
+
     if max_patients is not None:
         processed_dir = Path("data/processed/tusz")
         npz_files = sorted(processed_dir.rglob("*.npz"))[:max_patients]
         print(f"🚀 Loading {len(npz_files)} patients (max {max_patients})")
-        all_X, all_y = [], []
+
+        # Keep windows grouped by patient (do NOT concatenate yet).
+        # This is required so we can split by patient before merging into
+        # a single tensor — see split_dataset_by_patient() for why this matters.
+        patient_datasets = []
         sampling_rate = None
         for npz_file in npz_files:
             print(f"   📂 {npz_file.name}")
             data = np.load(npz_file)
             if sampling_rate is None:
-                # If the metadata is missing, safely use 128.0 as the default.
                 sampling_rate = float(data["sfreq"]) if "sfreq" in data.files else 128.0
-            all_X.append(data["epochs"])
-            all_y.append(data["labels"])
+            patient_datasets.append((data["epochs"], data["labels"]))
             print(f"     {len(data['labels'])} windows, {data['n_seizures']} seizures")
 
         data_path_str = "tusz-multi"
-        X = torch.tensor(np.concatenate(all_X)).float().unsqueeze(1)  # (N,1,C,T)
-        y = torch.tensor(np.concatenate(all_y)).long()
+
+        if len(patient_datasets) >= 3:
+            # Patient-level split: no patient's windows appear in more than one split.
+            (X_train_np, y_train_np), (X_val_np, y_val_np), (X_test_np, y_test_np) = \
+                split_dataset_by_patient(patient_datasets)
+            patient_level_split = True
+
+            # Build the full X, y purely for logging/shape purposes (total counts).
+            X = torch.tensor(
+                np.concatenate([p[0] for p in patient_datasets])
+            ).float().unsqueeze(1)
+            y = torch.tensor(
+                np.concatenate([p[1] for p in patient_datasets])
+            ).long()
+        else:
+            # Fewer than 3 patients: patient-level split not meaningful,
+            # fall back to window-level split with a clear warning.
+            print("  ⚠️  Fewer than 3 patients loaded — falling back to window-level split.")
+            all_X = [p[0] for p in patient_datasets]
+            all_y = [p[1] for p in patient_datasets]
+            X = torch.tensor(np.concatenate(all_X)).float().unsqueeze(1)
+            y = torch.tensor(np.concatenate(all_y)).long()
     else:
         data_path = Path(data_path)
         print(f"📂 Loading: {data_path}")
@@ -99,6 +123,20 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
         # Sampling rate is used to calculate the time duration represented by windows.
         sampling_rate = float(data["sfreq"]) if "sfreq" in data.files else 128.0
+
+    # Normalize each EEG window per-channel (zero mean, unit variance).
+    # Why: raw EEG amplitude varies enormously across patients and recording
+    # sessions (different electrode impedance, gain, montage). Without this,
+    # the network sees wildly different input scales for the same class label,
+    # making it impossible to learn a consistent decision boundary — this is
+    # the likely cause of both CNN and TCN performing at chance level on
+    # multi-patient data.
+    if not patient_level_split:
+        mean = X.mean(dim=-1, keepdim=True)   # mean over time axis, per (sample, channel)
+        std = X.std(dim=-1, keepdim=True) + 1e-6  # avoid divide-by-zero on flat channels
+        X = (X - mean) / std
+
+    print(f"  Normalization   : per-window z-score (mean=0, std=1 per channel)")
 
     print(f"  X: {X.shape} | y: {y.shape} | seizures: {y.sum().item()}")
 
@@ -120,11 +158,34 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
     print(f"  Window duration : {window_duration_s:.2f} seconds")
     print(f"  Window step     : {window_step_s:.2f} seconds")
 
-    dataset = TensorDataset(X, y)
+    if patient_level_split:
+        # Apply the same per-window z-score normalization to each split
+        # separately, since they are no longer built from a single X tensor.
+        def _normalize(X_np):
+            X_t = torch.tensor(X_np).float().unsqueeze(1)  # (N,1,C,T)
+            mean = X_t.mean(dim=-1, keepdim=True)
+            std = X_t.std(dim=-1, keepdim=True) + 1e-6
+            return (X_t - mean) / std
 
-    # Split the full dataset before training.
-    # This prevents reporting accuracy on the same data used for learning.
-    train_dataset, val_dataset, test_dataset = split_dataset(dataset)
+        X_train_t = _normalize(X_train_np)
+        X_val_t = _normalize(X_val_np)
+        X_test_t = _normalize(X_test_np)
+
+        y_train_t = torch.tensor(y_train_np).long()
+        y_val_t = torch.tensor(y_val_np).long()
+        y_test_t = torch.tensor(y_test_np).long()
+
+        train_dataset = TensorDataset(X_train_t, y_train_t)
+        val_dataset = TensorDataset(X_val_t, y_val_t)
+        test_dataset = TensorDataset(X_test_t, y_test_t)
+
+        print("  Split strategy            : patient-level (no leakage across splits)")
+    else:
+        # Single-patient run, or fewer than 3 patients: window-level random split.
+        # Normalization is applied once to the full X before this point.
+        dataset = TensorDataset(X, y)
+        train_dataset, val_dataset, test_dataset = split_dataset(dataset)
+        print("  Split strategy            : window-level random split (single patient)")
 
     # Training loader is shuffled because the model should see batches in random order.
     train_loader = DataLoader(
@@ -194,6 +255,8 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
         "window_step_s": window_step_s,
         "evaluation_level": "window_level",
         "false_alarm_definition": "false_positive_windows_per_evaluated_hour",
+
+        "split_strategy": "patient_level" if patient_level_split else "window_level_random",
 
         # Training configuration
         "epochs": epochs,
@@ -312,7 +375,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             loader=val_loader,
             criterion=criterion,
             window_step_s=window_step_s,
-            metric_name="balanced_accuracy"
+            metric_name="f1"
         )
 
         best_threshold = threshold_result["best_threshold"]
