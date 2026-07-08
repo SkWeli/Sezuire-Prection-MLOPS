@@ -34,6 +34,8 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 from src.models.cnn import SeizureCNN
+from src.models.tcn import SeizureTCN
+
 from src.evaluation.metrics import (
     evaluate_model,
     find_best_threshold,
@@ -47,7 +49,7 @@ from src.evaluation.reporting import (
 )
 from src.evaluation.splits import split_dataset
 
-def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None, window_overlap_frac=0.5):
+def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None, window_overlap_frac=0.5, model_name="cnn"):
     """
     Train the baseline seizure detection model.
 
@@ -102,6 +104,8 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
 
     # Each EEG window has shape: (channels, timepoints).
     # X shape is: (N, 1, channels, timepoints)
+    n_channels = X.shape[2]
+    
     n_timepoints = X.shape[-1]
 
     # Window duration in seconds.
@@ -145,7 +149,13 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
     print(f"  Val samples  : {len(val_dataset)}")
     print(f"  Test samples : {len(test_dataset)}")
 
-    model = SeizureCNN() # Create the CNN model
+    # Model selection: "cnn" is the baseline, "tcn" is the improved architecture.
+    if model_name == "tcn":
+        model = SeizureTCN(n_channels=n_channels, n_timepoints=n_timepoints)
+    else:
+        model = SeizureCNN(n_channels=n_channels, n_timepoints=n_timepoints)
+
+    print(f"  Model architecture       : {model_name.upper()}")
     optimizer = torch.optim.Adam(model.parameters(), lr=lr) # Adam optimizer updates model weights during training.
     # Calculate class weights from the training split only.
     # This prevents the model from being biased toward the majority class.
@@ -191,7 +201,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
         "batch_size": batch_size,
 
         # Model and dataset information
-        "model": "SeizureCNN",
+        "model": model_name,
         "dataset": data_path_str,
         "n_samples": len(X),
         "n_seizures": int(y.sum()),
@@ -341,7 +351,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             test_metrics=test_metrics,
             baseline_metrics=baseline_metrics,
             output_dir=PROJECT_ROOT / "reports" / "tables",
-            run_name=data_path_str
+            run_name=f"{data_path_str}_{model_name}"
         )
 
         # Log all final test metrics with the prefix "test".
@@ -409,7 +419,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
         report_path = save_test_metrics_report(
             metrics=test_metrics,
             output_dir=PROJECT_ROOT / "reports" / "metrics",
-            run_name=data_path_str,
+            run_name=f"{data_path_str}_{model_name}",
             baseline_metrics=baseline_metrics
         )
 
@@ -508,11 +518,12 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
         model_output_dir = PROJECT_ROOT / "models"
         model_output_dir.mkdir(parents=True, exist_ok=True)
 
-        model_checkpoint_path = model_output_dir / "seizure_cnn.pt"
+        checkpoint_filename = "seizure_tcn.pt" if model_name == "tcn" else "seizure_cnn.pt"
+        model_checkpoint_path = model_output_dir / checkpoint_filename
 
         torch.save(
             {
-                "model_name": "SeizureCNN",
+                "model_name": "SeizureTCN" if model_name == "tcn" else "SeizureCNN",
                 "model_state_dict": model.state_dict(),
 
                 # Store input shape details so evaluate.py can rebuild the model correctly.
@@ -539,7 +550,7 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             artifact_path="models"
         )
 
-        mlflow.pytorch.log_model(model, name="seizure_cnn")
+        mlflow.pytorch.log_model(model, name=f"seizure_{model_name}")
         print("✅ Model logged to MLflow!")
         print(f"✅ Local model checkpoint saved: {model_checkpoint_path}")
         print(f"✅ Run: mlflow ui → http://127.0.0.1:5000")
@@ -555,5 +566,6 @@ if __name__ == "__main__":
     parser.add_argument("--batch-size", type=int,   default=32)
     parser.add_argument("--max-patients", type=int, default=None, help="Max number of patients (npz files) to load; None uses --data single file")
     parser.add_argument("--window-overlap-frac", type=float, default=0.5, help="Window overlap fraction used during preprocessing. Default 0.5 means 50% overlap.")
+    parser.add_argument("--model", type=str, default="cnn", choices=["cnn", "tcn"], help="Model architecture to train: cnn or tcn")
     args = parser.parse_args()
-    sys.exit(train(args.data, args.epochs, args.lr, args.batch_size, args.max_patients, args.window_overlap_frac))
+    sys.exit(train(args.data, args.epochs, args.lr, args.batch_size, args.max_patients, args.window_overlap_frac, args.model))
