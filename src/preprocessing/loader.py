@@ -162,33 +162,28 @@ def _label_window(
     t_start: float,
     t_end: float,
     seizures: list[SeizureAnnotation],
-) -> str:
+) -> int:  
     """
-    Assign one of four labels to a [t_start, t_end) window.
-
-    Priority order (first match wins):
-        1. ictal       — window overlaps any seizure
-        2. pre_ictal   — window ends in (onset-120 s, onset-30 s]
-        3. interictal  — window is > 4 h from every seizure boundary
-        4. unknown     — peri-ictal buffer or not enough recording
+    Assign one of three standardized integer labels to a [t_start, t_end) window.
+    0 = Interictal (Background)
+    1 = Pre-ictal (Predictive warning horizon)
+    2 = Ictal (Active seizure event)
     """
     if not seizures:
-        # No seizures in file: every window is interictal by default
-        # (caller's responsibility to check cross-file 4-hour constraint)
-        return "interictal"
+        return 0  # Interictal
 
-    # 1. Ictal — any overlap
+    # 1. Ictal — any overlap (Highest Priority)
     for sz in seizures:
         if t_start < sz.offset and t_end > sz.onset:
-            return "ictal"
+            return 2  # Ictal
 
     # 2. Pre-ictal — window ENDS in the pre-ictal zone before some seizure onset
     for sz in seizures:
-        gap = sz.onset - t_end          # seconds between window end and onset
+        gap = sz.onset - t_end          
         if PRE_ICTAL_MIN_S <= gap <= PRE_ICTAL_MAX_S:
-            return "pre_ictal"
+            return 1  # Pre-ictal
 
-    # 3. Interictal — > 4 h from every seizure boundary
+    # 3. Interictal buffer guard
     for sz in seizures:
         dist = min(
             abs(t_start - sz.onset),
@@ -197,9 +192,9 @@ def _label_window(
             abs(t_end   - sz.offset),
         )
         if dist <= INTERICTAL_BUFFER_S:
-            return "unknown"     # too close — peri-ictal buffer
+            return 0  # Aligning buffer zones to background state 
 
-    return "interictal"
+    return 0  # Default Interictal
 
 
 
@@ -451,29 +446,31 @@ def load_and_preprocess(
 
         window_start += step_samples
 
-    epochs_arr    = np.stack(epochs_data, axis=0)   # (N, C, T)
-    labels_arr    = np.array(epochs_labels)
+    # --- UPDATE THIS LOGGING BLOCK IN src/preprocessing/loader.py ---
+    epochs_arr    = np.stack(epochs_data, axis=0)   
+    labels_arr    = np.array(epochs_labels, dtype=np.int64) 
     t_starts_arr  = np.array(epochs_t_start, dtype=np.float32)
 
-    label_counts = {lbl: int((labels_arr == lbl).sum())
-                    for lbl in ("ictal", "pre_ictal", "interictal", "unknown")}
+    n_interictal = int((labels_arr == 0).sum())
+    n_pre_ictal  = int((labels_arr == 1).sum())
+    n_ictal      = int((labels_arr == 2).sum())
+
     log.info(
-        "       %d epochs total — ictal=%d  pre_ictal=%d  interictal=%d  unknown=%d",
+        "       %d epochs total — interictal=%d  pre_ictal=%d  ictal=%d",
         len(epochs_labels),
-        label_counts["ictal"],
-        label_counts["pre_ictal"],
-        label_counts["interictal"],
-        label_counts["unknown"],
+        n_interictal,
+        n_pre_ictal,
+        n_ictal,
     )
 
+    # Update this specific function call to use the new variables:
     _add_step(rdf_g, session_id, step_counter,
               "epoch_extraction",
               f"Extracted {len(epochs_labels)} epochs: duration={epoch_duration}s, "
               f"overlap={int(epoch_overlap*100)}%; "
-              f"ictal={label_counts['ictal']}, "
-              f"pre_ictal={label_counts['pre_ictal']}, "
-              f"interictal={label_counts['interictal']}, "
-              f"unknown={label_counts['unknown']}")
+              f"interictal={n_interictal}, "
+              f"pre_ictal={n_pre_ictal}, "
+              f"ictal={n_ictal}")
     step_counter += 1
 
     # Save .npz 
@@ -481,12 +478,16 @@ def load_and_preprocess(
     np.savez_compressed(
         str(npz_path),
         epochs=epochs_arr,           # float32 (N, C, T)
-        labels=labels_arr,           # str     (N,)
+        labels=labels_arr,           # int64   (N,)
         t_starts=t_starts_arr,       # float32 (N,)
-        ch_names=np.array(ch_names),
+        ch_names=np.array(ch_names, dtype=object),
         sfreq=np.float32(sfreq),
         edf_path=str(edf_path),
         session_id=session_id,
+        n_windows=len(epochs_labels),
+        n_interictal=n_interictal,   # <-- Unified schema keys
+        n_pre_ictal=n_pre_ictal,     # <-- Unified schema keys
+        n_ictal=n_ictal              # <-- Unified schema keys
     )
     log.info("  💾 Saved epochs → %s", npz_path)
 
