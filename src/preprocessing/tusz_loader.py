@@ -47,20 +47,36 @@ def parse_csv_seizures(csv_path):
     return intervals
 
 
-def label_window(window_start_sample, window_size_samples, sfreq, seizure_intervals):
-    """Return 1 if window overlaps any seizure interval by >50%, else 0"""
+def label_window(window_start_sample, window_size_samples, sfreq, seizure_intervals, pre_ictal_seconds=900.0):
+    """
+    Return temporal class label for an EEG window:
+    0 = Interictal (Background)
+    1 = Pre-ictal (Impending seizure horizon)
+    2 = Ictal (Active seizure)
+    """
     win_start_sec = window_start_sample / sfreq
     win_end_sec   = (window_start_sample + window_size_samples) / sfreq
     win_dur       = win_end_sec - win_start_sec
 
+    label = 0  # Default to Interictal
+
     for (sz_start, sz_end) in seizure_intervals:
+        # 1. Check for Ictal overlap (Highest Priority)
         overlap_start = max(win_start_sec, sz_start)
         overlap_end   = min(win_end_sec,   sz_end)
         overlap_sec   = max(0.0, overlap_end - overlap_start)
 
-        if overlap_sec / win_dur >= 0.5:   # ≥50% overlap → seizure window
-            return 1
-    return 0
+        if overlap_sec / win_dur >= 0.5:   # ≥50% overlap → active seizure window
+            return 2  # Immediate return, Ictal overrides everything
+        
+        # 2. Check for Pre-Ictal overlap
+        pre_ictal_start = max(0.0, sz_start - pre_ictal_seconds)
+        
+        # If the window falls within the predictive horizon BEFORE the seizure
+        if win_end_sec > pre_ictal_start and win_start_sec <= sz_start:
+            label = 1  # Assign Pre-ictal, but continue loop in case it overlaps an earlier Ictal zone
+            
+    return label
 
 
 def load_tusz_folder(tusz_folder, output_dir="data/processed"):
@@ -117,7 +133,13 @@ def load_tusz_folder(tusz_folder, output_dir="data/processed"):
         n_samples_step    = int(sfreq * step_sec)     # 256
 
         file_epochs   = 0
-        file_seizures = 0
+        file_pre_ictal = 0
+        file_ictal = 0
+
+        # Add skipping logic for aborted recordings (from our previous fix)
+        if raw.n_times < n_samples_window:
+            print(f"    ⚠️ Skipping {edf_file.name}: recording too short ({raw.n_times} samples)")
+            continue
 
         for i in range(0, data.shape[1] - n_samples_window, n_samples_step):
             window = data[:, i:i + n_samples_window]
@@ -126,9 +148,12 @@ def load_tusz_folder(tusz_folder, output_dir="data/processed"):
             all_epochs.append(window.astype(np.float32))
             all_labels.append(label)
             file_epochs   += 1
-            file_seizures += label
+            if label == 1:
+                file_pre_ictal += 1
+            elif label == 2:
+                file_ictal += 1
 
-        print(f"    Added {file_epochs} windows ({file_seizures} seizures)")
+        print(f"    Added {file_epochs} windows ({file_pre_ictal} pre-ictal, {file_ictal} ictal)")
 
     if not all_epochs:
         print("❌ No windows created")
@@ -157,25 +182,32 @@ def load_tusz_folder(tusz_folder, output_dir="data/processed"):
     all_epochs = np.array(padded_epochs, dtype=np.float32)
     all_labels = np.array(all_labels,    dtype=np.int64)
 
+    # Calculate exact counts for the NPZ metadata
+    n_interictal = int((all_labels == 0).sum())
+    n_pre_ictal  = int((all_labels == 1).sum())
+    n_ictal      = int((all_labels == 2).sum())
+
     # ── Save NPZ ─────────────────────────────────────────────────────────────
     out_file = output_root / f"{patient_id}.npz"
     np.savez_compressed(
         out_file,
-        epochs     = all_epochs,
-        labels     = all_labels,
-        ch_names   = np.array(
+        epochs       = all_epochs,
+        labels       = all_labels,
+        ch_names     = np.array(
             final_ch_names[:20] if final_ch_names else [f'ch{i}' for i in range(20)],
             dtype=object
         ),
-        sfreq      = final_sfreq,
-        patient_id = patient_id,
-        n_windows  = len(all_epochs),
-        n_seizures = int(all_labels.sum())
+        sfreq        = final_sfreq,
+        patient_id   = patient_id,
+        n_windows    = len(all_epochs),
+        n_interictal = n_interictal,
+        n_pre_ictal  = n_pre_ictal,
+        n_ictal      = n_ictal
     )
 
     print(f"\n✅ SAVED: {out_file}")
     print(f"✅ Shape: {all_epochs.shape}")
-    print(f"✅ Seizures: {int(all_labels.sum())} / {len(all_labels)} ({all_labels.mean():.1%})")
+    print(f"✅ Classes: {n_interictal} Interictal | {n_pre_ictal} Pre-Ictal | {n_ictal} Ictal")
     return 0
 
 

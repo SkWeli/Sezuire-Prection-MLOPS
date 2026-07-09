@@ -75,12 +75,17 @@ def generate_tusz_ttl(npz_path, ttl_path=None):
     ch_names = list(data["ch_names"])
     sfreq = float(data["sfreq"])
     n_windows = int(data["n_windows"])
-    n_seizures = int(data["n_seizures"])
+    n_interictal = int(data.get("n_interictal", 0))
+    n_pre_ictal  = int(data.get("n_pre_ictal", 0))
+    n_ictal      = int(data.get("n_ictal", 0))
 
     # Create simple IDs for RDF resources
     patient_res = f"patient_{clean_name(patient_id)}"
     session_res = f"session_{clean_name(patient_id)}"
     sampling_res = f"sampling_{clean_name(patient_id)}"
+
+    #Calculate total seizures or map them directly into your RDF triples
+    n_seizures = n_ictal
 
     # These are the preprocessing steps your TUSZ loader applies
     preprocessing_steps = [
