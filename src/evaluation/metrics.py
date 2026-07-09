@@ -222,7 +222,8 @@ def find_best_threshold(
     metric_name="f1",
     min_threshold=0.05,
     max_threshold=0.95,
-    step=0.01
+    step=0.01,
+    smoothing_window=0
 ):
     """
     Find the best seizure decision threshold using validation data.
@@ -256,7 +257,8 @@ def find_best_threshold(
             loader=loader,
             criterion=criterion,
             window_step_s=window_step_s,
-            decision_threshold=float(threshold)
+            decision_threshold=float(threshold),
+            smoothing_window=smoothing_window
         )
 
         # Calculate F2-score dynamically if requested

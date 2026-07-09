@@ -375,7 +375,8 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             loader=val_loader,
             criterion=criterion,
             window_step_s=window_step_s,
-            metric_name="f1"
+            metric_name="f1",
+            smoothing_window=5
         )
 
         best_threshold = threshold_result["best_threshold"]
@@ -394,7 +395,8 @@ def train(data_path=None, epochs=20, lr=0.001, batch_size=32, max_patients=None,
             loader=test_loader,
             criterion=criterion,
             window_step_s=window_step_s,
-            decision_threshold=best_threshold
+            decision_threshold=best_threshold,
+            smoothing_window=5
         )
         
         final_reported_accuracy = test_metrics["accuracy"]
