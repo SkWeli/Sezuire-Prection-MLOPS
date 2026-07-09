@@ -32,6 +32,7 @@ if str(PROJECT_ROOT) not in sys.path:
 
 
 from src.models.cnn import SeizureCNN
+from src.models.tcn import SeizureTCN
 from src.evaluation.splits import split_dataset
 from src.evaluation.metrics import evaluate_model, compute_majority_class_baseline
 from src.evaluation.reporting import (
@@ -68,7 +69,7 @@ def load_processed_npz(data_path):
     return X, y, sampling_rate, data_path.stem
 
 
-def load_seizure_cnn_checkpoint(model_path):
+def load_model_checkpoint(model_path):
     """
     Load a saved SeizureCNN checkpoint.
 
@@ -84,11 +85,17 @@ def load_seizure_cnn_checkpoint(model_path):
 
     checkpoint = torch.load(model_path, map_location="cpu")
 
-    model = SeizureCNN(
-        n_channels=int(checkpoint.get("n_channels", 20)),
-        n_timepoints=int(checkpoint.get("n_timepoints", 512)),
-        n_classes=int(checkpoint.get("n_classes", 2)),
-    )
+    # Read the stored model name metadata from the checkpoint
+    model_type = checkpoint.get("model_name", "SeizureCNN")
+    n_channels = int(checkpoint.get("n_channels", 20))
+    n_timepoints = int(checkpoint.get("n_timepoints", 512))
+
+    if model_type == "SeizureTCN":
+        print("🤖 Instantiating SeizureTCN architecture...")
+        model = SeizureTCN(n_channels=n_channels, n_timepoints=n_timepoints)
+    else:
+        print("🤖 Instantiating SeizureCNN architecture...")
+        model = SeizureCNN(n_channels=n_channels, n_timepoints=n_timepoints, n_classes=int(checkpoint.get("n_classes", 2)))
 
     model.load_state_dict(checkpoint["model_state_dict"])
 
@@ -132,7 +139,7 @@ def evaluate_saved_model(data_path, model_path, batch_size=32, window_overlap_fr
     print(f"  Val samples  : {len(val_dataset)}")
     print(f"  Test samples : {len(test_dataset)}")
 
-    model, checkpoint = load_seizure_cnn_checkpoint(model_path)
+    model, checkpoint = load_model_checkpoint(model_path)
     criterion = nn.CrossEntropyLoss()
 
     # Use the tuned threshold saved during training.
@@ -147,7 +154,8 @@ def evaluate_saved_model(data_path, model_path, batch_size=32, window_overlap_fr
         loader=test_loader,
         criterion=criterion,
         window_step_s=window_step_s,
-        decision_threshold=decision_threshold
+        decision_threshold=decision_threshold,
+        smoothing_window=5
     )
 
     # Majority-class baseline uses training labels and predicts one class for test data.

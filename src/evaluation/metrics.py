@@ -68,8 +68,28 @@ def compute_binary_auc(y_true, y_score):
 
     return float(auc)
 
+def apply_temporal_smoothing(predictions, window_size=5, threshold_fraction=0.5):
+    """
+    Apply a sliding window majority vote to smooth out jittery predictions.
+    
+    window_size: Number of consecutive windows to check.
+    threshold_fraction: What fraction of windows must be 'seizure' to trigger an alarm.
+                        0.5 means majority rule.
+    """
+    if window_size <= 1:
+        return predictions
 
-def evaluate_model(model, loader, criterion, window_step_s=2.0, decision_threshold=0.5):
+    # Create a kernel for the moving average
+    kernel = np.ones(window_size) / window_size
+    
+    # Convolve the binary predictions (0s and 1s)
+    # mode='same' keeps the output array length identical to input
+    smoothed = np.convolve(predictions, kernel, mode='same')
+    
+    # Threshold the smoothed average to get final binary output
+    return (smoothed >= threshold_fraction).astype(int)
+
+def evaluate_model(model, loader, criterion, window_step_s=2.0, decision_threshold=0.5, smoothing_window=0):
     """
     Evaluate a trained model on validation or test data.
 
@@ -111,22 +131,28 @@ def evaluate_model(model, loader, criterion, window_step_s=2.0, decision_thresho
             total_loss += loss.item() * batch_size
             total_samples += batch_size
 
-            # Convert logits into probabilities.
-            # Class 1 probability is used as the seizure score for AUC.
             probabilities = torch.softmax(outputs, dim=1)
             seizure_scores = probabilities[:, 1]
 
-            # Convert seizure probability into final class prediction.
-            # A threshold of 0.5 is the default, but later we tune this using validation data.
             predictions = (seizure_scores >= decision_threshold).long()
 
             all_true.extend(yb.cpu().numpy())
             all_pred.extend(predictions.cpu().numpy())
             all_scores.extend(seizure_scores.cpu().numpy())
 
+    # --- POST-PROCESSING STEP ---
     y_true = np.asarray(all_true)
-    y_pred = np.asarray(all_pred)
     y_score = np.asarray(all_scores)
+    
+    # Convert the full list of predictions to a numpy array first
+    raw_pred = np.asarray(all_pred)
+    
+    # Apply temporal smoothing to the entire sequence if requested
+    if smoothing_window > 0:
+        y_pred = apply_temporal_smoothing(raw_pred, window_size=smoothing_window)
+    else:
+        y_pred = raw_pred
+    # ----------------------------
 
     # Binary confusion matrix values.
     # Positive class = seizure.
