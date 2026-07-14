@@ -96,7 +96,7 @@ class SeizureTCN(nn.Module):
     network processes the time axis with dilated convolutions.
     """
 
-    def __init__(self, n_channels=20, n_timepoints=512, n_classes=2,
+    def __init__(self, n_channels=20, n_timepoints=512, n_classes=3,
                  num_channels=(32, 32, 64), kernel_size=7, dropout=0.2):
         super().__init__()
 

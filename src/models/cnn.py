@@ -36,7 +36,7 @@ class SeizureCNN(nn.Module):
         and suitable for later edge deployment experiments.
     """
 
-    def __init__(self, n_channels=20, n_timepoints=512, n_classes=2):
+    def __init__(self, n_channels=20, n_timepoints=512, n_classes=3):
         super().__init__()
 
         # First convolution learns temporal patterns inside each EEG channel.
