@@ -149,3 +149,7 @@ data/processed/
 # DVC local cache
 .dvc/cache/
 "@ | Add-Content .gitignore
+# Python virtual environments
+.venv/
+venv/
+venv_linux/

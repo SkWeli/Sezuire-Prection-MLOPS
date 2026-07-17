@@ -1,0 +1,41 @@
+Final Test Evaluation Report
+============================
+
+Test loss                    : 4.1640
+Test accuracy                : 0.2552
+Balanced accuracy            : 0.2887
+Decision threshold           : 0.5000
+Precision                    : 0.2864
+Recall / Sensitivity         : 0.2887
+Specificity                  : 0.7699
+F1-score                     : 0.1763
+AUC                          : 0.4539
+Evaluated duration hours     : 1.6328
+False alarms per hour        : 123.7155
+
+Confusion Matrix
+----------------
+                 Predicted
+               Non-Seizure  Seizure
+Actual Non-Seizure      676      202
+Actual Seizure         1921      140
+
+Majority-Class Baseline
+-----------------------
+Majority class                : 0 (0=non-seizure, 1=seizure)
+Baseline accuracy             : 0.2987
+Baseline precision            : 0.0000
+Baseline recall/sensitivity   : 0.0000
+Baseline specificity          : 1.0000
+Baseline F1-score             : 0.0000
+Baseline AUC                  : 0.5000
+Baseline false alarms/hour    : 0.0000
+
+Model vs Baseline
+-----------------
+Accuracy difference           : -0.0436
+F1-score difference           : +0.1763
+False alarms/hour difference  : +123.7155
+
+Reported accuracy source: held-out test set
+False alarm type       : window-level false positives per hour
