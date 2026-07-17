@@ -84,6 +84,39 @@ def run_shacl_validation(data_file, shapes_file=DEFAULT_SHAPES_FILE, ontology_fi
 
     return conforms, results_text
 
+def run_validation(
+    data_graph_path,
+    shapes_path=DEFAULT_SHAPES_FILE,
+    ontology_path=DEFAULT_ONTOLOGY_FILE,
+    inference="rdfs",
+):
+    """
+    Compatibility entry point used by the pytest test suite.
+
+    Parameters use the names expected by tests/test_shacl.py and are
+    translated to the existing run_shacl_validation() implementation.
+    """
+    result = run_shacl_validation(
+        data_file=data_graph_path,
+        shapes_file=shapes_path,
+        ontology_file=ontology_path,
+    )
+
+    # pySHACL commonly returns:
+    # (conforms, validation_report_graph, validation_report_text)
+    if isinstance(result, tuple) and len(result) == 3:
+        conforms, _report_graph, report_text = result
+        return bool(conforms), str(report_text)
+
+    # Preserve an existing two-value result.
+    if isinstance(result, tuple) and len(result) == 2:
+        conforms, report = result
+        return bool(conforms), str(report)
+
+    raise TypeError(
+        "run_shacl_validation() returned an unexpected result: "
+        f"{type(result).__name__}: {result!r}"
+    )
 
 def main():
     """

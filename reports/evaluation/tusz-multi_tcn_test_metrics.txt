@@ -1,31 +1,31 @@
 Final Test Evaluation Report
 ============================
 
-Test loss                    : 0.7837
-Test accuracy                : 0.2452
-Balanced accuracy            : 0.3034
-Decision threshold           : 0.2600
-Macro precision              : 0.3241
-Macro recall / sensitivity   : 0.3034
-Macro specificity            : 0.6519
-Macro F1-score               : 0.1601
-Macro multiclass AUC         : 0.4648
+Test loss                    : 0.8168
+Test accuracy                : 0.1195
+Balanced accuracy            : 0.3377
+Decision threshold           : 0.0800
+Macro precision              : 0.3508
+Macro recall / sensitivity   : 0.3377
+Macro specificity            : 0.6711
+Macro F1-score               : 0.0763
+Macro multiclass AUC         : 0.4632
 Evaluated duration hours     : 2.5378
-False-positive windows/hour  : 1305.8669
+False-positive windows/hour  : 1580.5166
 
 Three-Class Confusion Matrix
 ----------------------------
 Actual \ Predicted          Interictal     Pre-Ictal         Ictal
-Interictal                         797          3196           118
-Pre-Ictal                          108           323            20
+Interictal                         100          4011             0
+Pre-Ictal                            5           446             0
 Ictal                                0             6             0
 
 Alarm-Level Binary Aggregation
 ------------------------------
 Alarm = Pre-Ictal or Ictal
                          Predicted No Alarm  Predicted Alarm
-Actual No Alarm                         797             3314
-Actual Alarm                            108              349
+Actual No Alarm                         100             4011
+Actual Alarm                              5              452
 
 Majority-Class Baseline
 -----------------------
@@ -40,9 +40,9 @@ Baseline false-positive windows/hour: 0.0000
 
 Model vs Baseline
 -----------------
-Accuracy difference           : -0.6548
-Macro F1 difference           : -0.1557
-False-positive windows/hour difference: +1305.8669
+Accuracy difference           : -0.7804
+Macro F1 difference           : -0.2395
+False-positive windows/hour difference: +1580.5166
 
 Reported accuracy source: held-out test set
 Threshold source: validation split only

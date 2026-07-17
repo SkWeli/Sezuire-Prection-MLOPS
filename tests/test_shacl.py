@@ -61,9 +61,12 @@ _PREFIXES = textwrap.dedent("""\
 
 
 def _write_ttl(tmp_path: Path, content: str) -> Path:
-    """Write Turtle content to a temp file and return its path."""
+    """Write Turtle content as UTF-8 and return its path."""
     p = tmp_path / "test_data.ttl"
-    p.write_text(_PREFIXES + "\n" + textwrap.dedent(content))
+    p.write_text(
+        _PREFIXES + "\n" + textwrap.dedent(content),
+        encoding="utf-8",
+    )
     return p
 
 
