@@ -35,6 +35,8 @@ def log_evaluation_metrics_to_mlflow(prefix, metrics, step=None, class_names=Non
         "alarm_recall_sensitivity",
         "alarm_specificity",
         "alarm_f1",
+        "alarm_youden_j",
+        "alarm_prediction_rate",
         "alarm_auc",
         "tp",
         "tn",
@@ -157,12 +159,21 @@ def save_test_metrics_report(
         file.write("--------------------------------\n")
         file.write("Alarm = Pre-Ictal or Ictal\n")
         file.write(f"Validation-selected threshold : {metrics['decision_threshold']:.4f}\n")
+        if metrics.get("alarm_threshold_policy"):
+            file.write(f"Threshold-selection policy    : {metrics['alarm_threshold_policy']}\n")
+        if metrics.get("alarm_threshold_policy") == "specificity_constrained":
+            file.write(
+                f"Minimum validation specificity: "
+                f"{metrics.get('alarm_min_specificity', float('nan')):.4f}\n"
+            )
         file.write(f"Alarm accuracy                : {metrics['alarm_accuracy']:.4f}\n")
         file.write(f"Alarm balanced accuracy       : {metrics['alarm_balanced_accuracy']:.4f}\n")
         file.write(f"Alarm precision               : {metrics['alarm_precision']:.4f}\n")
         file.write(f"Alarm sensitivity             : {metrics['alarm_recall_sensitivity']:.4f}\n")
         file.write(f"Alarm specificity             : {metrics['alarm_specificity']:.4f}\n")
         file.write(f"Alarm F1-score                : {metrics['alarm_f1']:.4f}\n")
+        file.write(f"Alarm Youden J                : {metrics['alarm_youden_j']:.4f}\n")
+        file.write(f"Predicted-alarm window rate   : {metrics['alarm_prediction_rate']:.4f}\n")
         file.write(
             "Alarm AUC                     : "
             + (f"{metrics['alarm_auc']:.4f}" if np.isfinite(metrics["alarm_auc"]) else "Not available")
@@ -288,12 +299,17 @@ def save_threshold_sweep_table(sweep_rows, output_dir, run_name):
         "alarm_sensitivity",
         "alarm_specificity",
         "alarm_balanced_accuracy",
+        "alarm_youden_j",
+        "alarm_prediction_rate",
         "false_alarms_per_hour",
     ]
     with md_path.open("w", encoding="utf-8") as md_file:
         md_file.write("# Validation Alarm Threshold Sweep\n\n")
-        md_file.write("| Threshold | Alarm F1 | Sensitivity | Specificity | Balanced Accuracy | False Alarms/Hour |\n")
-        md_file.write("|---:|---:|---:|---:|---:|---:|\n")
+        md_file.write(
+            "| Threshold | Alarm F1 | Sensitivity | Specificity | Balanced Accuracy "
+            "| Youden J | Predicted Alarm Rate | False Alarms/Hour |\n"
+        )
+        md_file.write("|---:|---:|---:|---:|---:|---:|---:|---:|\n")
         for row in sweep_rows:
             md_file.write(
                 f"| {row[selected_fields[0]]:.2f} "
@@ -301,7 +317,9 @@ def save_threshold_sweep_table(sweep_rows, output_dir, run_name):
                 f"| {row[selected_fields[2]]:.4f} "
                 f"| {row[selected_fields[3]]:.4f} "
                 f"| {row[selected_fields[4]]:.4f} "
-                f"| {row[selected_fields[5]]:.4f} |\n"
+                f"| {row[selected_fields[5]]:.4f} "
+                f"| {row[selected_fields[6]]:.4f} "
+                f"| {row[selected_fields[7]]:.4f} |\n"
             )
 
     return csv_path, md_path
@@ -352,6 +370,8 @@ def save_cnn_baseline_results_table(
         "alarm_sensitivity",
         "alarm_specificity",
         "alarm_f1",
+        "alarm_youden_j",
+        "alarm_prediction_rate",
         "alarm_auc",
         "false_alarms_per_hour",
         "tp",
@@ -377,6 +397,8 @@ def save_cnn_baseline_results_table(
             "alarm_sensitivity": values["alarm_recall_sensitivity"],
             "alarm_specificity": values["alarm_specificity"],
             "alarm_f1": values["alarm_f1"],
+            "alarm_youden_j": values["alarm_youden_j"],
+            "alarm_prediction_rate": values["alarm_prediction_rate"],
             "alarm_auc": values["alarm_auc"],
             "false_alarms_per_hour": values["false_alarms_per_hour"],
             "tp": values["tp"],
@@ -394,9 +416,10 @@ def save_cnn_baseline_results_table(
     with md_path.open("w", encoding="utf-8") as md_file:
         md_file.write("# Model vs Majority-Class Baseline\n\n")
         md_file.write(
-            "| Model | Accuracy | Balanced Accuracy | Macro F1 | Macro AUC | Alarm F1 | Alarm Sensitivity | Alarm Specificity | False Alarms/Hour |\n"
+            "| Model | Accuracy | Balanced Accuracy | Macro F1 | Macro AUC | Alarm F1 "
+            "| Alarm Sensitivity | Alarm Specificity | Predicted Alarm Rate | False Alarms/Hour |\n"
         )
-        md_file.write("|---|---:|---:|---:|---:|---:|---:|---:|---:|\n")
+        md_file.write("|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|\n")
         for values in rows:
             macro_auc = f"{values['auc']:.4f}" if np.isfinite(values["auc"]) else "N/A"
             md_file.write(
@@ -404,6 +427,7 @@ def save_cnn_baseline_results_table(
                 f"| {values['balanced_accuracy']:.4f} | {values['f1_score']:.4f} "
                 f"| {macro_auc} | {values['alarm_f1']:.4f} "
                 f"| {values['alarm_sensitivity']:.4f} | {values['alarm_specificity']:.4f} "
+                f"| {values['alarm_prediction_rate']:.4f} "
                 f"| {values['false_alarms_per_hour']:.4f} |\n"
             )
 

@@ -263,6 +263,8 @@ def calculate_metrics_from_probabilities(
         "alarm_recall_sensitivity": alarm_recall,
         "alarm_specificity": alarm_specificity,
         "alarm_f1": alarm_f1,
+        "alarm_youden_j": alarm_recall + alarm_specificity - 1.0,
+        "alarm_prediction_rate": float(np.mean(predicted_alarm)),
         "alarm_auc": compute_binary_auc(true_alarm, alarm_probability),
         "alarm_confusion_matrix": alarm_confusion.tolist(),
         "tp": int(tp),
@@ -326,38 +328,126 @@ def evaluate_model(
     )
 
 
+def select_best_threshold_from_rows(
+    sweep_rows,
+    selection_policy="balanced_accuracy",
+    min_specificity=0.80,
+):
+    """Select one validation threshold using a non-degenerate alarm policy.
+
+    Policies:
+      balanced_accuracy: maximize (sensitivity + specificity) / 2.
+      youden_j: maximize sensitivity + specificity - 1.
+      f1: maximize alarm F1 (kept for comparison; may select all-alarm).
+      specificity_constrained: maximize sensitivity subject to specificity >= minimum.
+    """
+    if not sweep_rows:
+        raise ValueError("Threshold sweep contains no rows.")
+    if not 0.0 <= min_specificity <= 1.0:
+        raise ValueError("min_specificity must be between 0 and 1.")
+
+    valid_policies = {
+        "balanced_accuracy",
+        "youden_j",
+        "f1",
+        "specificity_constrained",
+    }
+    if selection_policy not in valid_policies:
+        raise ValueError(
+            f"Unknown selection_policy={selection_policy!r}. "
+            f"Choose from {sorted(valid_policies)}."
+        )
+
+    candidates = []
+    for row in sweep_rows:
+        if selection_policy == "specificity_constrained":
+            if float(row["alarm_specificity"]) + 1e-12 < min_specificity:
+                continue
+            primary_score = float(row["alarm_sensitivity"])
+        elif selection_policy == "balanced_accuracy":
+            primary_score = float(row["alarm_balanced_accuracy"])
+        elif selection_policy == "youden_j":
+            primary_score = float(row["alarm_youden_j"])
+        else:
+            primary_score = float(row["alarm_f1"])
+
+        if not np.isfinite(primary_score):
+            continue
+
+        # Deterministic tie-breaking: prefer higher specificity, then fewer
+        # false-positive windows/hour, then a threshold nearer 0.5.
+        key = (
+            primary_score,
+            float(row["alarm_specificity"]),
+            -float(row["false_alarms_per_hour"]),
+            -abs(float(row["threshold"]) - 0.5),
+        )
+        candidates.append((key, row))
+
+    if not candidates and selection_policy == "specificity_constrained":
+        # Do not silently fail. Use the highest-specificity operating point and
+        # expose that the requested constraint was not achievable.
+        fallback = max(
+            sweep_rows,
+            key=lambda row: (
+                float(row["alarm_specificity"]),
+                float(row["alarm_sensitivity"]),
+                -float(row["false_alarms_per_hour"]),
+            ),
+        )
+        return fallback, False
+
+    if not candidates:
+        raise RuntimeError("No finite validation threshold candidates were available.")
+
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return candidates[0][1], True
+
+
 def find_best_threshold(
     model,
     loader,
     criterion,
     window_step_s=2.0,
-    metric_name="alarm_f1",
+    metric_name=None,
     min_threshold=0.05,
     max_threshold=0.95,
     step=0.01,
     smoothing_window=0,
+    selection_policy="balanced_accuracy",
+    min_specificity=0.80,
 ):
-    """Tune only the secondary alarm threshold on the validation split."""
+    """Tune the secondary alarm threshold using validation data only.
+
+    ``metric_name`` is retained for backward compatibility. When supplied,
+    ``alarm_f1`` maps to the legacy F1 policy and ``alarm_balanced_accuracy``
+    maps to the safer balanced-accuracy policy.
+    """
+    if metric_name is not None:
+        mapping = {
+            "alarm_f1": "f1",
+            "alarm_balanced_accuracy": "balanced_accuracy",
+            "alarm_youden_j": "youden_j",
+        }
+        selection_policy = mapping.get(metric_name, selection_policy)
+
     outputs = collect_model_outputs(model, loader, criterion)
     thresholds = np.arange(min_threshold, max_threshold + (step / 2.0), step)
-    best_threshold = 0.5
-    best_score = -np.inf
-    best_metrics = None
     sweep_rows = []
+    metrics_by_threshold = {}
 
     for threshold in thresholds:
+        threshold = float(threshold)
         metrics = calculate_metrics_from_probabilities(
             y_true=outputs["y_true"],
             y_prob=outputs["y_prob"],
             average_loss=outputs["average_loss"],
             window_step_s=window_step_s,
-            decision_threshold=float(threshold),
+            decision_threshold=threshold,
             smoothing_window=smoothing_window,
         )
-        score = float(metrics.get(metric_name, np.nan))
-
         row = {
-            "threshold": float(threshold),
+            "threshold": threshold,
             "macro_f1": metrics["f1"],
             "balanced_accuracy": metrics["balanced_accuracy"],
             "interictal_recall": metrics["per_class_recall"][0],
@@ -369,46 +459,38 @@ def find_best_threshold(
             "alarm_sensitivity": metrics["alarm_recall_sensitivity"],
             "alarm_specificity": metrics["alarm_specificity"],
             "alarm_f1": metrics["alarm_f1"],
+            "alarm_youden_j": metrics["alarm_youden_j"],
+            "alarm_prediction_rate": metrics["alarm_prediction_rate"],
             "alarm_auc": metrics["alarm_auc"],
             "false_alarms_per_hour": metrics["false_alarms_per_hour"],
         }
         sweep_rows.append(row)
+        metrics_by_threshold[round(threshold, 10)] = metrics
 
-        if not np.isfinite(score):
-            continue
+    selected_row, constraint_met = select_best_threshold_from_rows(
+        sweep_rows=sweep_rows,
+        selection_policy=selection_policy,
+        min_specificity=min_specificity,
+    )
+    best_threshold = float(selected_row["threshold"])
+    best_metrics = metrics_by_threshold[round(best_threshold, 10)]
 
-        is_better = score > best_score + 1e-12
-        is_equal_with_fewer_false_alarms = (
-            abs(score - best_score) <= 1e-12
-            and best_metrics is not None
-            and metrics["false_alarms_per_hour"]
-            < best_metrics["false_alarms_per_hour"] - 1e-12
-        )
-        is_equal_and_closer_to_default = (
-            abs(score - best_score) <= 1e-12
-            and best_metrics is not None
-            and abs(
-                metrics["false_alarms_per_hour"]
-                - best_metrics["false_alarms_per_hour"]
-            ) <= 1e-12
-            and abs(float(threshold) - 0.5) < abs(best_threshold - 0.5)
-        )
-
-        if is_better or is_equal_with_fewer_false_alarms or is_equal_and_closer_to_default:
-            best_score = score
-            best_threshold = float(threshold)
-            best_metrics = metrics
-
-    if best_metrics is None:
-        raise RuntimeError(
-            f"Unable to select a threshold because validation metric '{metric_name}' "
-            "was unavailable for every candidate threshold."
-        )
+    if selection_policy == "balanced_accuracy":
+        best_score = float(selected_row["alarm_balanced_accuracy"])
+    elif selection_policy == "youden_j":
+        best_score = float(selected_row["alarm_youden_j"])
+    elif selection_policy == "f1":
+        best_score = float(selected_row["alarm_f1"])
+    else:
+        best_score = float(selected_row["alarm_sensitivity"])
 
     return {
         "best_threshold": best_threshold,
-        "best_score": float(best_score),
-        "metric_name": metric_name,
+        "best_score": best_score,
+        "metric_name": selection_policy,
+        "selection_policy": selection_policy,
+        "min_specificity": float(min_specificity),
+        "specificity_constraint_met": bool(constraint_met),
         "best_metrics": best_metrics,
         "sweep_rows": sweep_rows,
     }
