@@ -245,8 +245,13 @@ def split_dataset_by_patient(
     seed=42,
     patient_ids=None,
     search_trials=10000,
+    return_selection=False,
 ):
-    """Split at patient level using deterministic class-balanced selection."""
+    """Split at patient level using deterministic class-balanced selection.
+
+    Set return_selection=True to also receive the exact patient-index assignment
+    and split score for experiment manifests and reproducibility metadata.
+    """
     n_patients = len(patient_datasets)
     if patient_ids is None:
         patient_ids = [str(index) for index in range(n_patients)]
@@ -283,4 +288,7 @@ def split_dataset_by_patient(
     print(f"  Val patients   ({len(val_idx)}) : {_names(val_idx)}")
     print(f"  Test patients  ({len(test_idx)}) : {_names(test_idx)}")
 
-    return (X_train, y_train), (X_val, y_val), (X_test, y_test)
+    datasets = ((X_train, y_train), (X_val, y_val), (X_test, y_test))
+    if return_selection:
+        return datasets, selection
+    return datasets

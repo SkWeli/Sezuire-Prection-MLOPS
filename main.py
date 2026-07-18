@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 import time
@@ -11,6 +12,12 @@ from pathlib import Path
 
 from src.validation.rdf_generator import generate_tusz_ttl
 
+# Force UTF-8 for Windows PowerShell, redirected output, and child Python processes.
+os.environ.setdefault("PYTHONUTF8", "1")
+os.environ.setdefault("PYTHONIOENCODING", "utf-8")
+for stream in (sys.stdout, sys.stderr):
+    if hasattr(stream, "reconfigure"):
+        stream.reconfigure(encoding="utf-8", errors="replace")
 
 CHBMIT_RAW_DIR = Path("data/raw/chbmit/physionet.org/files/chbmit/1.0.0")
 
@@ -54,7 +61,7 @@ def validate_processed_metadata(dataset):
         raise SystemExit(1)
 
     print(
-        f"🔍 Found {len(npz_files)} processed NPZ file(s) and "
+        f"[INFO] Found {len(npz_files)} processed NPZ file(s) and "
         f"{len(ttl_files)} semantic graph(s) for {dataset.upper()}."
     )
 
@@ -65,7 +72,7 @@ def validate_processed_metadata(dataset):
             check=True,
         )
 
-    print("✅ All semantic metadata passed SHACL validation.")
+    print("[PASS] All semantic metadata passed SHACL validation.")
     return True
 
 
@@ -114,7 +121,7 @@ def run(dataset="chbmit", stage="all", extra_args=None):
                 print("[ERROR] No TUSZ patient folders were found under data/raw/tusz/dev or eval.")
                 raise SystemExit(1)
 
-            print(f"🚀 Preparing to preprocess {len(tusz_folders)} TUSZ patient(s)...")
+            print(f"[INFO] Preparing to preprocess {len(tusz_folders)} TUSZ patient(s)...")
             for raw_patient_folder in tusz_folders:
                 subprocess.run(
                     [
@@ -138,7 +145,7 @@ def run(dataset="chbmit", stage="all", extra_args=None):
 
             print("[TTL] RDF metadata generation complete.")
 
-        print("✅ Preprocessing stage complete.")
+        print("[PASS] Preprocessing stage complete.")
 
     if stage in ("validate", "all"):
         print("\n[2/3] Running SHACL semantic validation...")
@@ -173,9 +180,9 @@ def run(dataset="chbmit", stage="all", extra_args=None):
             check=True,
         )
         elapsed = time.perf_counter() - train_start
-        print(f"✅ Model trained and logged to MLflow in {elapsed:.1f} seconds.")
+        print(f"[PASS] Model trained and logged to MLflow in {elapsed:.1f} seconds.")
 
-    print("\n✅ Pipeline execution complete.")
+    print("\n[PASS] Pipeline execution complete.")
 
 
 if __name__ == "__main__":
