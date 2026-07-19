@@ -153,3 +153,24 @@ data/processed/
 .venv/
 venv/
 venv_linux/
+
+# Local EEG datasets and large research artifacts
+
+# Trained model binaries
+models/*.pt
+models/*.pth
+models/frozen/
+
+# MLflow runtime data
+
+# Generated viva execution logs
+reports/prototype_demo/viva_runs/
+reports/prototype_demo/*_offline_demo_*.json
+
+# Archives
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+
+# Python generated files

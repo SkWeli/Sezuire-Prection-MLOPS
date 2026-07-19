@@ -1,0 +1,54 @@
+{
+  "source_checkpoint": "models\\seizure_tcn.pt",
+  "source_sha256": "9a137f589c935b1eb675f03be1dc58735556f756092e3a15ce038790e27f7c6e",
+  "model_name": "SeizureTCN",
+  "n_channels": 20,
+  "n_timepoints": 512,
+  "n_classes": 3,
+  "parameter_count": 76643,
+  "patient_count": 12,
+  "random_seed": 42,
+  "split_seed": 42,
+  "dataloader_seed": 42,
+  "best_epoch": 1,
+  "best_val_multiclass_f1": 0.2930831759718871,
+  "primary_prediction_rule": "multiclass_argmax",
+  "alarm_threshold_policy": "specificity_constrained",
+  "alarm_decision_threshold": 0.8700000000000002,
+  "min_alarm_specificity": 0.8,
+  "alarm_specificity_constraint_met": true,
+  "train_patient_ids": [
+    "aaaaaajy",
+    "aaaaaamc",
+    "aaaaaarq",
+    "aaaaabep",
+    "aaaaaclc",
+    "aaaaacqc",
+    "aaaaacyi",
+    "aaaaadkb"
+  ],
+  "validation_patient_ids": [
+    "aaaaaaaq",
+    "aaaaaazz"
+  ],
+  "test_patient_ids": [
+    "aaaaaayf",
+    "aaaaabxe"
+  ],
+  "checks": {
+    "model_is_tcn": true,
+    "channels_are_20": true,
+    "timepoints_are_512": true,
+    "classes_are_3": true,
+    "parameters_are_76643": true,
+    "patient_count_is_20": false,
+    "random_seed_is_42": true,
+    "split_seed_is_42": true,
+    "train_split_matches": false,
+    "validation_split_matches": false,
+    "test_split_matches": false,
+    "output_shape_is_correct": true,
+    "threshold_is_present": true,
+    "best_validation_f1_is_present": true
+  }
+}

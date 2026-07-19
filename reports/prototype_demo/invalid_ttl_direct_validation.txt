@@ -1,0 +1,19 @@
+﻿[INFO] Data graph : E:\FYP\eeg-seizure-mlops\tests\shacl\invalid_missing_channels.ttl
+[INFO] Shapes     : E:\FYP\eeg-seizure-mlops\ontology\shacl_shapes.ttl
+[INFO] Ontology   : E:\FYP\eeg-seizure-mlops\ontology\eeg_epilepsy.ttl
+[INFO] Inference  : rdfs
+
+[FAIL] Data graph violates one or more SHACL constraints.
+
+---- Violation Report ----------------------------------------
+Validation Report
+Conforms: False
+Results (1):
+Constraint Violation in MinCountConstraintComponent (http://www.w3.org/ns/shacl#MinCountConstraintComponent):
+	Severity: sh:Violation
+	Source Shape: [ sh:class eeg:EEGChannel ; sh:description Literal("RecordingSession must have at least 19 EEGChannels (10-20 system coverage).") ; sh:message Literal("RecordingSession must reference at least 19 eeg:EEGChannel individuals via eeg:hasChannel.") ; sh:minCount Literal("19", datatype=xsd:integer) ; sh:name Literal("hasChannel") ; sh:path eeg:hasChannel ; sh:severity sh:Violation ]
+	Focus Node: eeg:session_bad02
+	Result Path: eeg:hasChannel
+	Message: RecordingSession must reference at least 19 eeg:EEGChannel individuals via eeg:hasChannel.
+
+--------------------------------------------------------------

@@ -1,0 +1,60 @@
+{
+  "status": "frozen_review_baseline",
+  "checkpoint": "E:\\FYP\\eeg-seizure-mlops\\models\\frozen\\seizure_tcn_p20_baseline_review_0d6774d3.pt",
+  "sha256": "0d6774d36f2f040b4ce6ae5f9964fc30b004a7fe96b4a9fdfd401f733921a4e7",
+  "model_name": "SeizureTCN",
+  "patient_count": 20,
+  "n_channels": 20,
+  "n_timepoints": 512,
+  "n_classes": 3,
+  "best_epoch": 5,
+  "best_val_multiclass_f1": 0.5693425488469757,
+  "class_weights": [
+    0.4103645086288452,
+    2.3689281940460205,
+    7.091681957244873
+  ],
+  "alarm_threshold_policy": "specificity_constrained",
+  "alarm_decision_threshold": 0.17000000000000004,
+  "min_alarm_specificity": 0.8,
+  "primary_prediction_rule": "multiclass_argmax",
+  "train_patient_ids": [
+    "aaaaaajy",
+    "aaaaaarq",
+    "aaaaaazz",
+    "aaaaabep",
+    "aaaaaclc",
+    "aaaaacqc",
+    "aaaaacyi",
+    "aaaaadkb",
+    "aaaaaefp",
+    "aaaaaewf",
+    "aaaaaexe",
+    "aaaaafjv",
+    "aaaaagbf",
+    "aaaaagdr"
+  ],
+  "validation_patient_ids": [
+    "aaaaaaaq",
+    "aaaaaamc",
+    "aaaaadkj"
+  ],
+  "test_patient_ids": [
+    "aaaaaayf",
+    "aaaaabxe",
+    "aaaaafcf"
+  ],
+  "checks": {
+    "hash_matches": true,
+    "model_is_tcn": true,
+    "patient_count_is_20": true,
+    "input_is_20x512": true,
+    "classes_are_3": true,
+    "best_epoch_is_5": true,
+    "baseline_weights_match": true,
+    "split_is_14_3_3": true,
+    "threshold_present": true,
+    "validation_f1_present": true
+  },
+  "scientific_status": "Research prototype; not clinically validated; not a medical device."
+}
