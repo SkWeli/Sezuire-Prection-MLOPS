@@ -1,79 +1,155 @@
 name: SHACL Ontology Validation
 
+# ---------------------------------------------------------------------------
+# Run semantic validation during normal repository development.
+#
+# workflow_dispatch also allows the workflow to be started manually
+# from the GitHub Actions page.
+# ---------------------------------------------------------------------------
 on:
   push:
     branches:
       - main
       - dev
+      - "feat/**"
+      - "feature/**"
+      - "fix/**"
+
   pull_request:
     branches:
       - main
       - dev
 
+  workflow_dispatch:
+
+# The workflow only needs permission to read repository files.
+permissions:
+  contents: read
+
 jobs:
-  shacl-validate:
-    name: Validate EEG ontology against SHACL shapes
+  shacl-validation:
+    name: Validate EEG semantic metadata
+
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout 
-      - name: Checkout repository
+      # ---------------------------------------------------------------------
+      # Step 1: Download the repository into the GitHub-hosted runner.
+      # ---------------------------------------------------------------------
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      # Python setup 
-      - name: Set up Python 3.10
+      # ---------------------------------------------------------------------
+      # Step 2: Install the Python version used for semantic validation.
+      #
+      # Caching is intentionally omitted for now because this workflow
+      # installs only a few lightweight packages.
+      # ---------------------------------------------------------------------
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          python-version: "3.10"
-          cache: pip          # cache pip downloads between runs
+          python-version: "3.11"
 
-      # Install dependencies 
-      - name: Install validation dependencies
+      # ---------------------------------------------------------------------
+      # Step 3: Install only the packages required by the SHACL tests.
+      #
+      # This avoids installing PyTorch, ONNX, MLflow and dataset-processing
+      # dependencies in the semantic-validation workflow.
+      # ---------------------------------------------------------------------
+      - name: Install SHACL test dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyshacl rdflib
+          python -m pip install pytest pyshacl rdflib
 
-      # Confirm file presence (visible in CI log for debugging) 
-      - name: List ontology files
+      # ---------------------------------------------------------------------
+      # Step 4: Print environment versions for reproducibility and debugging.
+      # ---------------------------------------------------------------------
+      - name: Display validation environment
         run: |
-          echo "── Ontology files present ──────────────────────────────────"
-          ls -lh ontology/
-          echo "────────────────────────────────────────────────────────────"
+          python --version
+          python -c "import rdflib; print('RDFLib:', rdflib.__version__)"
+          python -c "import pyshacl; print('pySHACL:', pyshacl.__version__)"
 
-      # Run SHACL validation 
-      - name: Run SHACL validator
-        id: shacl
+      # ---------------------------------------------------------------------
+      # Step 5: Confirm the semantic files and test fixtures were committed.
+      #
+      # The workflow should fail early with a clear message if a required
+      # ontology, shape file, validator or fixture is missing.
+      # ---------------------------------------------------------------------
+      - name: Verify semantic project files
         run: |
-          echo "════════════════════════════════════════════════════════════"
-          echo "  EEG Epilepsy MLOps — SHACL Validation"
-          echo "  Data graph : ontology/eeg_epilepsy.ttl"
-          echo "  Shapes     : ontology/shacl_shapes.ttl"
-          echo "════════════════════════════════════════════════════════════"
+          test -f ontology/eeg_epilepsy.ttl
+          test -f ontology/shacl_shapes.ttl
+          test -f src/validation/shacl_validator.py
+          test -f tests/test_shacl.py
+          test -f tests/shacl/invalid_missing_channels.ttl
+
+          echo "Required semantic validation files are present."
+
+          echo ""
+          echo "Ontology directory:"
+          ls -lh ontology
+
+          echo ""
+          echo "SHACL test fixtures:"
+          find tests/shacl -maxdepth 1 -type f -name "*.ttl" -print
+
+      # ---------------------------------------------------------------------
+      # Step 6: Check the validator and test file for Python syntax errors.
+      # ---------------------------------------------------------------------
+      - name: Compile semantic validation code
+        run: |
+          python -m py_compile src/validation/shacl_validator.py
+          python -m py_compile tests/test_shacl.py
+
+      # ---------------------------------------------------------------------
+      # Step 7: Run the existing automated SHACL test suite.
+      #
+      # These tests are the main CI evidence because they verify the expected
+      # PASS behaviour for valid metadata and FAIL behaviour for invalid
+      # metadata using assertions.
+      # ---------------------------------------------------------------------
+      - name: Run automated SHACL tests
+        run: |
+          python -m pytest tests/test_shacl.py -q
+
+      # ---------------------------------------------------------------------
+      # Step 8: Demonstrate direct rejection of a known invalid fixture.
+      #
+      # The validator is expected to return a nonzero status here. The shell
+      # captures that result and converts the expected rejection into a
+      # successful CI step.
+      # ---------------------------------------------------------------------
+      - name: Verify invalid metadata is rejected
+        shell: bash
+        run: |
+          set +e
 
           python src/validation/shacl_validator.py \
-            ontology/eeg_epilepsy.ttl \
-            --shapes    ontology/shacl_shapes.ttl \
-            --ontology  none \
-            --inference rdfs
+            tests/shacl/invalid_missing_channels.ttl
 
-          echo "SHACL_EXIT=$?" >> "$GITHUB_OUTPUT"
+          validator_exit_code=$?
 
-      # Print result banner 
-      # This step always runs so the outcome is visible even when previous step fails.
-      - name: Report validation result
-        if: always()
-        run: |
-          if [ "${{ steps.shacl.outcome }}" = "success" ]; then
-            echo "════════════════════════════════════════════════════════════"
-            echo "  ✅  SHACL VALIDATION PASSED"
-            echo "  ontology/eeg_epilepsy.ttl conforms to all SHACL shapes."
-            echo "════════════════════════════════════════════════════════════"
-          else
-            echo "════════════════════════════════════════════════════════════"
-            echo "  ❌  SHACL VALIDATION FAILED"
-            echo "  ontology/eeg_epilepsy.ttl violates one or more SHACL"
-            echo "  constraints.  See the 'Run SHACL validator' step above"
-            echo "  for the full violation report."
-            echo "════════════════════════════════════════════════════════════"
+          set -e
+
+          if [ "$validator_exit_code" -eq 0 ]; then
+            echo "ERROR: Invalid metadata unexpectedly passed SHACL validation."
             exit 1
           fi
+
+          echo "PASS: Invalid metadata was rejected as expected."
+          echo "Validator exit code: $validator_exit_code"
+
+      # ---------------------------------------------------------------------
+      # Step 9: Print a final success banner.
+      #
+      # This runs only when every preceding required check has succeeded.
+      # ---------------------------------------------------------------------
+      - name: Report semantic validation success
+        run: |
+          echo "============================================================"
+          echo "SHACL SEMANTIC VALIDATION: PASS"
+          echo "============================================================"
+          echo "Valid metadata tests passed."
+          echo "Invalid metadata rejection was verified."
+          echo "The ontology, SHACL shapes and validator are available."
