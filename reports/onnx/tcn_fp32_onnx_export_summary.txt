@@ -1,0 +1,26 @@
+FP32 ONNX Export Summary
+========================================================================
+
+Status                    : PASS
+Model                     : SeizureTCN
+Training patient count    : 20
+Best epoch                : 5
+Best validation macro F1  : 0.5693425488469757
+Parameter count           : 76643
+Input contract            : float32[batch_size, 1, 20, 512]
+Output contract           : float32[batch_size, 3] logits
+Requested ONNX opset      : 18
+Actual ONNX opset         : 18
+ONNX file                 : E:\FYP\eeg-seizure-mlops\models\onnx\seizure_tcn_p20_baseline_fp32.onnx
+ONNX size bytes           : 367131
+ONNX size KiB             : 358.53
+Export duration ms        : 5069.93
+Checkpoint SHA256         : 0d6774d36f2f040b4ce6ae5f9964fc30b004a7fe96b4a9fdfd401f733921a4e7
+ONNX SHA256               : af31d5a99ac683786b70abc4eea774d9c3b9564af41856358280060cd2f77420
+PyTorch version           : 2.13.0+cpu
+ONNX version              : 1.22.0
+
+Scientific status         : Research prototype only; not clinically validated; not a medical device.
+
+Important: Structural ONNX validation does not yet prove numerical equivalence with PyTorch.
+PyTorch versus ONNX Runtime parity testing is the next stage.

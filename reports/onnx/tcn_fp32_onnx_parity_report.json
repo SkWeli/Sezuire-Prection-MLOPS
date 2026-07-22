@@ -1,0 +1,202 @@
+{
+  "status": "pass",
+  "created_at": "2026-07-22T10:00:25.868097+05:30",
+  "scientific_status": "Research prototype only; not clinically validated; not a medical device.",
+  "checkpoint_path": "E:\\FYP\\eeg-seizure-mlops\\models\\frozen\\seizure_tcn_p20_baseline_review_0d6774d3.pt",
+  "checkpoint_sha256": "0d6774d36f2f040b4ce6ae5f9964fc30b004a7fe96b4a9fdfd401f733921a4e7",
+  "onnx_path": "E:\\FYP\\eeg-seizure-mlops\\models\\onnx\\seizure_tcn_p20_baseline_fp32.onnx",
+  "onnx_sha256": "af31d5a99ac683786b70abc4eea774d9c3b9564af41856358280060cd2f77420",
+  "onnx_size_bytes": 367131,
+  "patient_path": "E:\\FYP\\eeg-seizure-mlops\\data\\processed\\tusz\\aaaaaayf\\aaaaaayf.npz",
+  "patient_id": "aaaaaayf",
+  "selected_window_indices": [
+    0,
+    2556,
+    2542
+  ],
+  "labels": [
+    0,
+    1,
+    2
+  ],
+  "input_shape": [
+    3,
+    1,
+    20,
+    512
+  ],
+  "alarm_threshold": 0.17000000000000004,
+  "alarm_threshold_policy": "specificity_constrained",
+  "onnx_contract": {
+    "actual_opset": 18,
+    "graph_inputs": [
+      "eeg_input"
+    ],
+    "graph_outputs": [
+      "logits"
+    ],
+    "ir_version": 10
+  },
+  "single_batch_result": {
+    "logits_close": true,
+    "probabilities_close": true,
+    "predictions_match": true,
+    "alarm_decisions_match": true,
+    "maximum_absolute_logit_difference": 5.960464477539063e-08,
+    "mean_absolute_logit_difference": 1.9868215517249155e-08,
+    "maximum_absolute_probability_difference": 0.0,
+    "mean_absolute_probability_difference": 0.0,
+    "absolute_tolerance": 1e-05,
+    "relative_tolerance": 0.0001,
+    "windows": [
+      {
+        "window_index": 0,
+        "true_class": 0,
+        "true_class_name": "Interictal",
+        "pytorch_prediction": 1,
+        "pytorch_prediction_name": "Pre-Ictal",
+        "onnx_prediction": 1,
+        "onnx_prediction_name": "Pre-Ictal",
+        "prediction_match": true,
+        "pytorch_probabilities": [
+          0.17747049033641815,
+          0.715172529220581,
+          0.10735704004764557
+        ],
+        "onnx_probabilities": [
+          0.17747049033641815,
+          0.715172529220581,
+          0.10735704004764557
+        ],
+        "pytorch_alarm_probability": 0.8225295543670654,
+        "onnx_alarm_probability": 0.8225295543670654,
+        "pytorch_alarm_decision": true,
+        "onnx_alarm_decision": true
+      }
+    ]
+  },
+  "batch_result": {
+    "logits_close": true,
+    "probabilities_close": true,
+    "predictions_match": true,
+    "alarm_decisions_match": true,
+    "maximum_absolute_logit_difference": 4.023313522338867e-07,
+    "mean_absolute_logit_difference": 1.904037247868473e-07,
+    "maximum_absolute_probability_difference": 1.4901161193847656e-07,
+    "mean_absolute_probability_difference": 6.374385463914223e-08,
+    "absolute_tolerance": 1e-05,
+    "relative_tolerance": 0.0001,
+    "windows": [
+      {
+        "window_index": 0,
+        "true_class": 0,
+        "true_class_name": "Interictal",
+        "pytorch_prediction": 1,
+        "pytorch_prediction_name": "Pre-Ictal",
+        "onnx_prediction": 1,
+        "onnx_prediction_name": "Pre-Ictal",
+        "prediction_match": true,
+        "pytorch_probabilities": [
+          0.17747049033641815,
+          0.7151724696159363,
+          0.10735705494880676
+        ],
+        "onnx_probabilities": [
+          0.17747049033641815,
+          0.715172529220581,
+          0.10735704004764557
+        ],
+        "pytorch_alarm_probability": 0.8225295543670654,
+        "onnx_alarm_probability": 0.8225295543670654,
+        "pytorch_alarm_decision": true,
+        "onnx_alarm_decision": true
+      },
+      {
+        "window_index": 2556,
+        "true_class": 1,
+        "true_class_name": "Pre-Ictal",
+        "pytorch_prediction": 0,
+        "pytorch_prediction_name": "Interictal",
+        "onnx_prediction": 0,
+        "onnx_prediction_name": "Interictal",
+        "prediction_match": true,
+        "pytorch_probabilities": [
+          0.45672088861465454,
+          0.4233614206314087,
+          0.11991771310567856
+        ],
+        "onnx_probabilities": [
+          0.4567209780216217,
+          0.42336133122444153,
+          0.11991767585277557
+        ],
+        "pytorch_alarm_probability": 0.5432791113853455,
+        "onnx_alarm_probability": 0.5432789921760559,
+        "pytorch_alarm_decision": true,
+        "onnx_alarm_decision": true
+      },
+      {
+        "window_index": 2542,
+        "true_class": 2,
+        "true_class_name": "Ictal",
+        "pytorch_prediction": 1,
+        "pytorch_prediction_name": "Pre-Ictal",
+        "onnx_prediction": 1,
+        "onnx_prediction_name": "Pre-Ictal",
+        "prediction_match": true,
+        "pytorch_probabilities": [
+          0.16618922352790833,
+          0.4474123418331146,
+          0.3863984942436218
+        ],
+        "onnx_probabilities": [
+          0.16618923842906952,
+          0.4474124610424042,
+          0.3863983452320099
+        ],
+        "pytorch_alarm_probability": 0.8338108062744141,
+        "onnx_alarm_probability": 0.8338108062744141,
+        "pytorch_alarm_decision": true,
+        "onnx_alarm_decision": true
+      }
+    ]
+  },
+  "required_checks": {
+    "single_batch_logits_close": true,
+    "single_batch_probabilities_close": true,
+    "single_batch_predictions_match": true,
+    "single_batch_alarm_decisions_match": true,
+    "batch_logits_close": true,
+    "batch_probabilities_close": true,
+    "batch_predictions_match": true,
+    "batch_alarm_decisions_match": true
+  },
+  "failed_checks": [],
+  "latency": {
+    "device": "CPU",
+    "batch_size": 1,
+    "pytorch": {
+      "runs": 100,
+      "mean_ms": 2.9437169985612854,
+      "median_ms": 2.7809500170405954,
+      "minimum_ms": 1.6963999951258302,
+      "maximum_ms": 6.3599999994039536,
+      "standard_deviation_ms": 0.6955072149664142
+    },
+    "onnx_runtime": {
+      "runs": 100,
+      "mean_ms": 1.4161210012389347,
+      "median_ms": 1.2417999969329685,
+      "minimum_ms": 0.9160000481642783,
+      "maximum_ms": 3.4661999670788646,
+      "standard_deviation_ms": 0.5537475528647317
+    }
+  },
+  "versions": {
+    "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+    "numpy": "2.4.6",
+    "pytorch": "2.13.0+cpu",
+    "onnx": "1.22.0",
+    "onnxruntime": "1.27.0"
+  }
+}

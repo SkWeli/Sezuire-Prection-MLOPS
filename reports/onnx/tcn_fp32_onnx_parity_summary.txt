@@ -1,0 +1,15 @@
+PyTorch vs FP32 ONNX Parity Summary
+========================================================================
+
+Status                    : PASS
+Checkpoint SHA256         : 0d6774d36f2f040b4ce6ae5f9964fc30b004a7fe96b4a9fdfd401f733921a4e7
+ONNX SHA256               : af31d5a99ac683786b70abc4eea774d9c3b9564af41856358280060cd2f77420
+Actual ONNX opset         : 18
+Maximum logit difference  : 0.0000004023
+Maximum probability diff  : 0.0000001490
+Predictions match         : True
+Alarm decisions match     : True
+PyTorch mean latency ms   : 2.943717
+ONNX mean latency ms      : 1.416121
+
+Scientific status         : Research prototype only; not clinically validated; not a medical device.

@@ -1,0 +1,69 @@
+{
+  "status": "onnx_export_pass",
+  "created_at": "2026-07-22T09:52:08.375603+05:30",
+  "scientific_status": "Research prototype only; not clinically validated; not a medical device.",
+  "source_checkpoint": "E:\\FYP\\eeg-seizure-mlops\\models\\frozen\\seizure_tcn_p20_baseline_review_0d6774d3.pt",
+  "source_checkpoint_sha256": "0d6774d36f2f040b4ce6ae5f9964fc30b004a7fe96b4a9fdfd401f733921a4e7",
+  "onnx_model": "E:\\FYP\\eeg-seizure-mlops\\models\\onnx\\seizure_tcn_p20_baseline_fp32.onnx",
+  "onnx_sha256": "af31d5a99ac683786b70abc4eea774d9c3b9564af41856358280060cd2f77420",
+  "onnx_size_bytes": 367131,
+  "onnx_size_kib": 358.5263671875,
+  "requested_onnx_opset": 18,
+  "actual_onnx_opset": 18,
+  "export_duration_ms": 5069.9257999658585,
+  "model_name": "SeizureTCN",
+  "patient_count": 20,
+  "best_epoch": 5,
+  "best_val_multiclass_f1": 0.5693425488469757,
+  "parameter_count": 76643,
+  "input_shape": [
+    "batch_size",
+    1,
+    20,
+    512
+  ],
+  "output_shape": [
+    "batch_size",
+    3
+  ],
+  "class_names": [
+    "Interictal",
+    "Pre-Ictal",
+    "Ictal"
+  ],
+  "alarm_threshold_policy": "specificity_constrained",
+  "alarm_decision_threshold": 0.17000000000000004,
+  "onnx_graph": {
+    "metadata": {
+      "project": "Ontology-Driven Verifiable MLOps for Edge-Deployable EEG Seizure Detection",
+      "scientific_status": "Research prototype; not clinically validated; not a medical device.",
+      "model_name": "SeizureTCN",
+      "source_checkpoint_sha256": "0d6774d36f2f040b4ce6ae5f9964fc30b004a7fe96b4a9fdfd401f733921a4e7",
+      "training_patient_count": "20",
+      "best_epoch": "5",
+      "best_validation_macro_f1": "0.5693425488469757",
+      "input_contract": "float32[batch_size,1,20,512]",
+      "output_contract": "float32[batch_size,3] logits",
+      "class_0": "Interictal",
+      "class_1": "Pre-Ictal",
+      "class_2": "Ictal",
+      "alarm_threshold_policy": "specificity_constrained",
+      "alarm_decision_threshold": "0.17000000000000004",
+      "requested_onnx_opset": "18",
+      "actual_onnx_opset": "18"
+    },
+    "graph_inputs": [
+      "eeg_input"
+    ],
+    "graph_outputs": [
+      "logits"
+    ],
+    "ir_version": 10,
+    "producer_name": "Final Year Project Senuda",
+    "producer_version": "1.0",
+    "requested_opset_version": 18,
+    "actual_opset_version": 18
+  },
+  "pytorch_version": "2.13.0+cpu",
+  "onnx_version": "1.22.0"
+}
