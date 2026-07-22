@@ -1,18 +1,15 @@
 """
-Lightweight architecture checks for the EEG classification models.
+Lightweight forward-pass tests for the EEG model architectures.
 
-These tests are designed for GitHub Actions and local development.
+These tests verify the model input/output contract without requiring:
 
-They do not require:
+- processed EEG datasets
+- trained checkpoints
+- CUDA
+- MLflow
+- Kaggle artifacts
 
-- processed EEG datasets;
-- trained checkpoints;
-- CUDA;
-- MLflow;
-- Kaggle files.
-
-They verify only that each architecture accepts the expected EEG input
-shape and produces finite three-class logits.
+They are suitable for both local pytest execution and GitHub Actions.
 """
 
 from __future__ import annotations
@@ -25,7 +22,7 @@ from src.models.tcn import SeizureTCN
 
 
 # ---------------------------------------------------------------------------
-# Shared model contract
+# Shared EEG model contract
 # ---------------------------------------------------------------------------
 
 BATCH_SIZE = 2
@@ -50,7 +47,8 @@ def create_test_input() -> torch.Tensor:
     """
     Create deterministic synthetic EEG input.
 
-    A fixed seed ensures repeated local and CI runs receive the same tensor.
+    A fixed random seed ensures local and CI runs receive the same
+    input tensor.
     """
     generator = torch.Generator(
         device="cpu"
@@ -70,7 +68,7 @@ def assert_valid_model_output(
     input_tensor: torch.Tensor,
 ) -> None:
     """
-    Run common forward-pass assertions for an EEG model.
+    Run shared assertions for an EEG classification model.
     """
     model.eval()
 
@@ -79,26 +77,29 @@ def assert_valid_model_output(
             input_tensor
         )
 
-    assert tuple(logits.shape) == EXPECTED_OUTPUT_SHAPE
+    assert tuple(logits.shape) == EXPECTED_OUTPUT_SHAPE, (
+        f"Expected output shape {EXPECTED_OUTPUT_SHAPE}, "
+        f"received {tuple(logits.shape)}."
+    )
 
     assert torch.isfinite(logits).all(), (
         "Model output contains NaN or infinity."
     )
 
-    parameter_count = sum(
+    trainable_parameter_count = sum(
         parameter.numel()
         for parameter in model.parameters()
         if parameter.requires_grad
     )
 
-    assert parameter_count > 0, (
-        "Model has no trainable parameters."
+    assert trainable_parameter_count > 0, (
+        "Model contains no trainable parameters."
     )
 
 
 def test_cnn_forward_pass() -> None:
     """
-    Verify the CNN accepts [batch, 1, 20, 512] input and emits
+    Verify that the CNN accepts the expected EEG tensor and produces
     three logits per sample.
     """
     model = SeizureCNN(
@@ -117,7 +118,7 @@ def test_cnn_forward_pass() -> None:
 
 def test_tcn_forward_pass() -> None:
     """
-    Verify the TCN accepts [batch, 1, 20, 512] input and emits
+    Verify that the TCN accepts the expected EEG tensor and produces
     three logits per sample.
     """
     model = SeizureTCN(
@@ -145,11 +146,8 @@ def test_models_reject_wrong_channel_count(
     model_class: type[torch.nn.Module],
 ) -> None:
     """
-    Confirm that an invalid input channel contract does not silently
-    produce an apparently valid three-class result.
-
-    The architecture may raise RuntimeError or ValueError depending on
-    the layer at which the shape mismatch is detected.
+    Verify that an invalid 19-channel input does not silently produce
+    a valid-looking prediction.
     """
     model = model_class(
         n_channels=N_CHANNELS,

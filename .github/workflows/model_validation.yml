@@ -1,0 +1,103 @@
+name: EEG Model Validation
+
+# ---------------------------------------------------------------------------
+# Run model architecture checks during normal repository development.
+# ---------------------------------------------------------------------------
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - "feat/**"
+      - "feature/**"
+      - "fix/**"
+
+  pull_request:
+    branches:
+      - main
+      - dev
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model-validation:
+    name: Validate CNN and TCN architectures
+
+    runs-on: ubuntu-latest
+
+    steps:
+      # ---------------------------------------------------------------------
+      # Download the repository into the GitHub runner.
+      # ---------------------------------------------------------------------
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # ---------------------------------------------------------------------
+      # Install the Python version used by the project.
+      # ---------------------------------------------------------------------
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # ---------------------------------------------------------------------
+      # Install only the dependencies needed for architecture testing.
+      #
+      # CPU-only PyTorch is sufficient because these tests do not train
+      # models and do not require CUDA.
+      # ---------------------------------------------------------------------
+      - name: Install model test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install torch pytest
+
+      # ---------------------------------------------------------------------
+      # Display the environment for reproducibility and debugging.
+      # ---------------------------------------------------------------------
+      - name: Display model test environment
+        run: |
+          python --version
+          python -c "import torch; print('PyTorch:', torch.__version__)"
+          python -c "import torch; print('CUDA available:', torch.cuda.is_available())"
+
+      # ---------------------------------------------------------------------
+      # Confirm that the required model and test files were committed.
+      # ---------------------------------------------------------------------
+      - name: Verify model source files
+        run: |
+          test -f src/models/cnn.py
+          test -f src/models/tcn.py
+          test -f tests/test_model_forward.py
+
+          echo "Required model source and test files are present."
+
+      # ---------------------------------------------------------------------
+      # Catch Python syntax errors before running pytest.
+      # ---------------------------------------------------------------------
+      - name: Compile model source files
+        run: |
+          python -m py_compile src/models/cnn.py
+          python -m py_compile src/models/tcn.py
+          python -m py_compile tests/test_model_forward.py
+
+      # ---------------------------------------------------------------------
+      # Run the lightweight architecture tests.
+      # ---------------------------------------------------------------------
+      - name: Run model forward-pass tests
+        run: |
+          python -m pytest tests/test_model_forward.py -q
+
+      # ---------------------------------------------------------------------
+      # Print a clear success message in the Actions log.
+      # ---------------------------------------------------------------------
+      - name: Report model validation success
+        run: |
+          echo "============================================================"
+          echo "EEG MODEL VALIDATION: PASS"
+          echo "============================================================"
+          echo "CNN forward-pass contract verified."
+          echo "TCN forward-pass contract verified."
+          echo "Invalid channel-count rejection verified."
