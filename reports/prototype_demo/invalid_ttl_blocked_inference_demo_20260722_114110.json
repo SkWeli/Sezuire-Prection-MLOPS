@@ -1,0 +1,18 @@
+{
+  "status": "pass",
+  "scientific_status": "Research prototype only; not clinically validated; not a medical device.",
+  "demo_type": "invalid_ttl_blocked_inference_demo",
+  "invalid_ttl_path": "E:\\FYP\\eeg-seizure-mlops\\tests\\shacl\\invalid_missing_channels.ttl",
+  "shacl": {
+    "conforms": false,
+    "duration_ms": 775.0194999971427,
+    "validator_output": "[INFO] Data graph : E:\\FYP\\eeg-seizure-mlops\\tests\\shacl\\invalid_missing_channels.ttl\n[INFO] Shapes     : E:\\FYP\\eeg-seizure-mlops\\ontology\\shacl_shapes.ttl\n[INFO] Ontology   : E:\\FYP\\eeg-seizure-mlops\\ontology\\eeg_epilepsy.ttl\n[INFO] Inference  : rdfs\n\n[FAIL] Data graph violates one or more SHACL constraints.\n\n---- Violation Report ----------------------------------------\nValidation Report\nConforms: False\nResults (1):\nConstraint Violation in MinCountConstraintComponent (http://www.w3.org/ns/shacl#MinCountConstraintComponent):\n\tSeverity: sh:Violation\n\tSource Shape: [ sh:class eeg:EEGChannel ; sh:description Literal(\"RecordingSession must have at least 19 EEGChannels (10-20 system coverage).\") ; sh:message Literal(\"RecordingSession must reference at least 19 eeg:EEGChannel individuals via eeg:hasChannel.\") ; sh:minCount Literal(\"19\", datatype=xsd:integer) ; sh:name Literal(\"hasChannel\") ; sh:path eeg:hasChannel ; sh:severity sh:Violation ]\n\tFocus Node: eeg:session_bad02\n\tResult Path: eeg:hasChannel\n\tMessage: RecordingSession must reference at least 19 eeg:EEGChannel individuals via eeg:hasChannel.\n\n--------------------------------------------------------------"
+  },
+  "execution_gate": {
+    "inference_blocked": true,
+    "checkpoint_loaded": false,
+    "eeg_loaded": false,
+    "inference_executed": false
+  },
+  "interpretation": "Invalid semantic metadata was rejected before model or EEG loading."
+}
