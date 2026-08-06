@@ -1,0 +1,32 @@
+FP32 vs INT8 Full Held-Out Test Evaluation
+========================================================================
+
+Status                         : PASS
+Test patients                  : aaaaaayf, aaaaabxe, aaaaafcf
+Total test windows             : 9594
+Alarm threshold                : 0.170000
+Test threshold tuning          : NO
+
+FP32 accuracy                  : 0.383886
+INT8 accuracy                  : 0.386283
+FP32 macro F1                  : 0.246961
+INT8 macro F1                  : 0.247821
+Macro F1 change                : +0.000860
+FP32 pre-ictal recall          : 0.218459
+INT8 pre-ictal recall          : 0.224386
+FP32 ictal recall              : 0.207589
+INT8 ictal recall              : 0.198661
+FP32 false alarms/hour         : 1108.442777
+INT8 false alarms/hour         : 1111.819887
+
+Prediction disagreements       : 127
+Alarm disagreements            : 89
+Maximum probability difference : 0.17405115
+Size reduction                 : 22.71%
+FP32 mean latency/window       : 1.451457 ms
+INT8 mean latency/window       : 1.005825 ms
+Latency change                 : -30.70%
+
+Decision support               : INT8 RETAINED BY CURRENT ENGINEERING CRITERION
+
+Scientific status              : Research prototype only; not clinically validated; not a medical device.

@@ -239,7 +239,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", default="models/seizure_cnn.pt", help="Path to saved PyTorch checkpoint.")
     parser.add_argument("--batch-size", type=int, default=32, help="Batch size for evaluation.")
     parser.add_argument("--window-overlap-frac", type=float, default=0.5, help="Window overlap fraction.")
-    parser.add_argument("--smoothing-window", type=int, default=5, help="Sliding window size for majority vote smoothing.")
+    parser.add_argument("--smoothing-window", type=int, default=0, help="Sliding window size for majority vote smoothing.")
 
     args = parser.parse_args()
 

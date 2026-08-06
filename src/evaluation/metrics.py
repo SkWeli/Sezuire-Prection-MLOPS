@@ -1,540 +1,461 @@
-"""Evaluation metrics for multiclass EEG seizure detection and alarm analysis."""
+"""
+Evaluation metrics for three-class EEG seizure-state classification.
+
+Immutable class contract:
+    0 = Interictal
+    1 = Pre-Ictal
+    2 = Ictal
+
+This module keeps multiclass classification metrics separate from model
+training. It also provides a validation-only alarm-threshold search.
+"""
 
 from __future__ import annotations
+
+from typing import Any, Dict, Iterable, Optional, Tuple
 
 import numpy as np
 import torch
 from sklearn.metrics import (
+    balanced_accuracy_score,
     confusion_matrix,
     f1_score,
+    precision_recall_fscore_support,
     precision_score,
     recall_score,
     roc_auc_score,
 )
 
-
-DEFAULT_CLASS_NAMES = ("Interictal", "Pre-Ictal", "Ictal")
-
-
-def compute_multiclass_auc(y_true, y_prob):
-    """Return macro one-vs-rest AUC, or NaN when it is not defined."""
-    y_true = np.asarray(y_true, dtype=np.int64)
-    y_prob = np.asarray(y_prob, dtype=np.float64)
-
-    if y_prob.ndim != 2 or y_prob.shape[0] != y_true.shape[0]:
-        return float("nan")
-
-    n_classes = y_prob.shape[1]
-    if n_classes < 2 or len(np.unique(y_true)) != n_classes:
-        return float("nan")
-
-    try:
-        return float(
-            roc_auc_score(
-                y_true,
-                y_prob,
-                labels=np.arange(n_classes),
-                multi_class="ovr",
-                average="macro",
-            )
-        )
-    except ValueError:
-        return float("nan")
+CLASS_IDS = np.array([0, 1, 2], dtype=np.int64)
+CLASS_NAMES = ("Interictal", "Pre-Ictal", "Ictal")
 
 
-def compute_binary_auc(y_true, positive_scores):
-    """Return binary AUC, or NaN if only one target class is present."""
-    y_true = np.asarray(y_true, dtype=np.int64)
-    positive_scores = np.asarray(positive_scores, dtype=np.float64)
-
-    if len(np.unique(y_true)) < 2:
-        return float("nan")
-
-    try:
-        return float(roc_auc_score(y_true, positive_scores))
-    except ValueError:
-        return float("nan")
+def _as_numpy_1d(values: Any, name: str) -> np.ndarray:
+    array = np.asarray(values)
+    if array.ndim != 1:
+        raise ValueError(f"{name} must be one-dimensional, got shape {array.shape}.")
+    return array
 
 
-def multiclass_predictions_from_probabilities(probabilities):
-    """Primary three-class prediction: always use class-probability argmax."""
-    probabilities = np.asarray(probabilities, dtype=np.float64)
-    if probabilities.ndim != 2 or probabilities.shape[1] < 2:
+def _validate_probabilities(y_prob: Any, n_samples: int) -> np.ndarray:
+    probabilities = np.asarray(y_prob, dtype=np.float64)
+    if probabilities.shape != (n_samples, 3):
         raise ValueError(
-            "Expected probabilities with shape (n_samples, n_classes>=2), "
+            "y_prob must have shape (n_samples, 3) in class order "
+            "[Interictal, Pre-Ictal, Ictal]; "
             f"got {probabilities.shape}."
         )
-    return np.argmax(probabilities, axis=1).astype(np.int64)
+    if not np.isfinite(probabilities).all():
+        raise ValueError("y_prob contains NaN or infinite values.")
+    if np.any(probabilities < -1e-8):
+        raise ValueError("y_prob contains negative values.")
+
+    row_sums = probabilities.sum(axis=1, keepdims=True)
+    if np.any(row_sums <= 0):
+        raise ValueError("Every probability row must have a positive sum.")
+
+    # Renormalise tiny floating-point drift, but do not hide malformed inputs.
+    probabilities = probabilities / row_sums
+    return probabilities
 
 
-def probabilities_to_predictions(probabilities, decision_threshold=0.5):
-    """Backward-compatible thresholded three-class helper.
+def compute_multiclass_auc(y_true: Any, y_prob: Any) -> float:
+    """
+    Compute macro one-vs-rest ROC AUC for the available classes.
 
-    New evaluation code does not use this function for the primary multiclass
-    task. It is retained so older callers and tests do not break.
+    A class is included only when both positive and negative examples are
+    present. This avoids returning a misleading value when a small split lacks
+    one class. Malformed probability arrays raise a clear exception instead of
+    silently returning 0.5.
+    """
+    truth = _as_numpy_1d(y_true, "y_true").astype(np.int64, copy=False)
+    probabilities = _validate_probabilities(y_prob, len(truth))
+
+    invalid_labels = sorted(set(np.unique(truth).tolist()) - set(CLASS_IDS.tolist()))
+    if invalid_labels:
+        raise ValueError(f"y_true contains invalid class IDs: {invalid_labels}.")
+
+    auc_values = []
+    for class_id in CLASS_IDS:
+        binary_truth = (truth == class_id).astype(np.int64)
+        if np.unique(binary_truth).size < 2:
+            continue
+        auc_values.append(
+            float(roc_auc_score(binary_truth, probabilities[:, class_id]))
+        )
+
+    if not auc_values:
+        return float("nan")
+    return float(np.mean(auc_values))
+
+
+def apply_temporal_smoothing(
+    probabilities: Any,
+    window_size: int = 5,
+) -> np.ndarray:
+    """
+    Smooth class probabilities with a centred moving average.
+
+    Smoothing class IDs directly is invalid for multiclass classification.
+    This function smooths each probability column independently, preserves all
+    three classes, and renormalises rows afterward.
+
+    Important: the caller must avoid smoothing across patient or recording
+    boundaries. Use window_size=1 or 0 when those boundaries are unavailable.
     """
     probabilities = np.asarray(probabilities, dtype=np.float64)
-    if probabilities.ndim != 2 or probabilities.shape[1] < 2:
+    if probabilities.ndim != 2 or probabilities.shape[1] != 3:
         raise ValueError(
-            "Expected probabilities with shape (n_samples, n_classes>=2), "
+            "probabilities must have shape (n_samples, 3); "
             f"got {probabilities.shape}."
         )
-    if not 0.0 <= decision_threshold <= 1.0:
-        raise ValueError("decision_threshold must be between 0 and 1.")
-    if probabilities.shape[1] == 2:
-        return (probabilities[:, 1] >= decision_threshold).astype(np.int64)
-    alarm_probability = probabilities[:, 1:].sum(axis=1)
-    alarm_subclass = 1 + np.argmax(probabilities[:, 1:], axis=1)
-    return np.where(alarm_probability >= decision_threshold, alarm_subclass, 0).astype(np.int64)
+    if window_size <= 1 or len(probabilities) <= 1:
+        return _validate_probabilities(probabilities, len(probabilities))
+    if window_size < 0:
+        raise ValueError("window_size must be non-negative.")
 
-
-def alarm_predictions_from_probabilities(probabilities, decision_threshold=0.5):
-    """Secondary binary alarm prediction: Interictal=0, Pre-Ictal/Ictal=1."""
-    probabilities = np.asarray(probabilities, dtype=np.float64)
-    if probabilities.ndim != 2 or probabilities.shape[1] < 2:
-        raise ValueError(
-            "Expected probabilities with shape (n_samples, n_classes>=2), "
-            f"got {probabilities.shape}."
-        )
-    if not 0.0 <= decision_threshold <= 1.0:
-        raise ValueError("decision_threshold must be between 0 and 1.")
-
-    if probabilities.shape[1] == 2:
-        alarm_probability = probabilities[:, 1]
-    else:
-        alarm_probability = probabilities[:, 1:].sum(axis=1)
-
-    return (alarm_probability >= decision_threshold).astype(np.int64)
-
-
-def apply_temporal_smoothing(predictions, window_size=5):
-    """Apply centred majority voting without collapsing multiclass labels."""
-    predictions = np.asarray(predictions, dtype=np.int64)
-
-    if window_size <= 1 or predictions.size == 0:
-        return predictions.copy()
+    # An odd window keeps the centred interpretation predictable.
     if window_size % 2 == 0:
-        raise ValueError("smoothing window_size must be odd.")
+        window_size += 1
 
-    n_classes = int(predictions.max()) + 1
-    radius = window_size // 2
-    smoothed = predictions.copy()
+    pad = window_size // 2
+    padded = np.pad(probabilities, ((pad, pad), (0, 0)), mode="edge")
+    kernel = np.ones(window_size, dtype=np.float64) / float(window_size)
 
-    for index in range(predictions.size):
-        start = max(0, index - radius)
-        stop = min(predictions.size, index + radius + 1)
-        local_values = predictions[start:stop]
-        counts = np.bincount(local_values, minlength=n_classes)
-        winners = np.flatnonzero(counts == counts.max())
-        smoothed[index] = (
-            predictions[index]
-            if predictions[index] in winners
-            else int(winners[0])
+    smoothed = np.empty_like(probabilities, dtype=np.float64)
+    for class_id in CLASS_IDS:
+        smoothed[:, class_id] = np.convolve(
+            padded[:, class_id], kernel, mode="valid"
         )
 
-    return smoothed
+    return _validate_probabilities(smoothed, len(smoothed))
 
 
-def _specificity_from_confusion(confusion):
-    confusion = np.asarray(confusion, dtype=np.int64)
-    total = confusion.sum()
-    values = []
-
-    for class_index in range(confusion.shape[0]):
-        tp = confusion[class_index, class_index]
-        fn = confusion[class_index, :].sum() - tp
-        fp = confusion[:, class_index].sum() - tp
-        tn = total - tp - fn - fp
-        denominator = tn + fp
-        values.append(float(tn / denominator) if denominator > 0 else float("nan"))
-
-    return float(np.nanmean(values)), values
-
-
-def _safe_divide(numerator, denominator):
-    return float(numerator / denominator) if denominator > 0 else 0.0
-
-
-def calculate_metrics_from_probabilities(
-    y_true,
-    y_prob,
-    average_loss,
-    window_step_s,
-    decision_threshold=0.5,
-    smoothing_window=0,
-):
+def probabilities_to_predictions(
+    y_prob: Any,
+    decision_threshold: Optional[float] = 0.5,
+) -> np.ndarray:
     """
-    Calculate two explicitly separated evaluations.
+    Convert three-class probabilities into class predictions.
 
-    Primary evaluation:
-        Three-class Interictal / Pre-Ictal / Ictal prediction using argmax.
+    When decision_threshold is None, use normal three-class argmax.
 
-    Secondary evaluation:
-        Binary alarm/no-alarm prediction using a validation-selected threshold
-        on P(Pre-Ictal) + P(Ictal).
+    Otherwise, treat Pre-Ictal and Ictal as alarm classes:
+      * alarm probability = P(Pre-Ictal) + P(Ictal)
+      * below threshold -> Interictal (0)
+      * at/above threshold -> whichever alarm class has higher probability
+
+    This gives the threshold a real, auditable meaning while retaining the
+    distinction between classes 1 and 2.
     """
-    y_true = np.asarray(y_true, dtype=np.int64)
-    y_prob = np.asarray(y_prob, dtype=np.float64)
+    probabilities = np.asarray(y_prob, dtype=np.float64)
+    probabilities = _validate_probabilities(probabilities, len(probabilities))
 
-    if y_true.size == 0:
-        raise ValueError("Cannot evaluate an empty dataset split.")
-    if y_prob.ndim != 2 or y_prob.shape[0] != y_true.shape[0]:
-        raise ValueError("Probability matrix shape does not match target labels.")
+    if decision_threshold is None:
+        return np.argmax(probabilities, axis=1).astype(np.int64)
 
-    n_classes = y_prob.shape[1]
-    labels = np.arange(n_classes)
+    threshold = float(decision_threshold)
+    if not 0.0 <= threshold <= 1.0:
+        raise ValueError("decision_threshold must be between 0 and 1.")
 
-    # PRIMARY MULTICLASS TASK: independent of alarm threshold.
-    y_pred = multiclass_predictions_from_probabilities(y_prob)
-    if smoothing_window > 1:
-        y_pred = apply_temporal_smoothing(y_pred, window_size=smoothing_window)
-
-    multiclass_confusion = confusion_matrix(y_true, y_pred, labels=labels)
-    per_class_precision = precision_score(
-        y_true, y_pred, labels=labels, average=None, zero_division=0
-    )
-    per_class_recall = recall_score(
-        y_true, y_pred, labels=labels, average=None, zero_division=0
-    )
-    per_class_f1 = f1_score(
-        y_true, y_pred, labels=labels, average=None, zero_division=0
-    )
-    macro_specificity, per_class_specificity = _specificity_from_confusion(
-        multiclass_confusion
-    )
-
-    macro_precision = float(np.mean(per_class_precision))
-    macro_recall = float(np.mean(per_class_recall))
-    macro_f1 = float(np.mean(per_class_f1))
-
-    # SECONDARY ALARM TASK: thresholded separately.
-    true_alarm = (y_true > 0).astype(np.int64)
-    alarm_probability = (
-        y_prob[:, 1]
-        if n_classes == 2
-        else y_prob[:, 1:].sum(axis=1)
-    )
-    predicted_alarm = alarm_predictions_from_probabilities(
-        y_prob, decision_threshold=decision_threshold
-    )
-    if smoothing_window > 1:
-        predicted_alarm = apply_temporal_smoothing(
-            predicted_alarm, window_size=smoothing_window
-        )
-
-    alarm_confusion = confusion_matrix(true_alarm, predicted_alarm, labels=[0, 1])
-    tn, fp, fn, tp = alarm_confusion.ravel()
-
-    alarm_precision = _safe_divide(tp, tp + fp)
-    alarm_recall = _safe_divide(tp, tp + fn)
-    alarm_specificity = _safe_divide(tn, tn + fp)
-    alarm_f1 = _safe_divide(2 * alarm_precision * alarm_recall, alarm_precision + alarm_recall)
-    alarm_balanced_accuracy = (alarm_recall + alarm_specificity) / 2.0
-    alarm_accuracy = _safe_divide(tp + tn, tp + tn + fp + fn)
-
-    evaluated_duration_seconds = float(y_true.size * window_step_s)
-    evaluated_duration_hours = evaluated_duration_seconds / 3600.0
-    false_alarms_per_hour = (
-        float(fp / evaluated_duration_hours)
-        if evaluated_duration_hours > 0
-        else 0.0
-    )
-
-    return {
-        # Primary multiclass metrics.
-        "loss": float(average_loss),
-        "accuracy": float(np.mean(y_true == y_pred)),
-        "balanced_accuracy": macro_recall,
-        "precision": macro_precision,
-        "recall_sensitivity": macro_recall,
-        "specificity": macro_specificity,
-        "f1": macro_f1,
-        "auc": compute_multiclass_auc(y_true, y_prob),
-        "confusion_matrix": multiclass_confusion.tolist(),
-        "per_class_precision": [float(value) for value in per_class_precision],
-        "per_class_recall": [float(value) for value in per_class_recall],
-        "per_class_f1": [float(value) for value in per_class_f1],
-        "per_class_specificity": [float(value) for value in per_class_specificity],
-        # Secondary alarm metrics.
-        "decision_threshold": float(decision_threshold),
-        "alarm_accuracy": alarm_accuracy,
-        "alarm_balanced_accuracy": alarm_balanced_accuracy,
-        "alarm_precision": alarm_precision,
-        "alarm_recall_sensitivity": alarm_recall,
-        "alarm_specificity": alarm_specificity,
-        "alarm_f1": alarm_f1,
-        "alarm_youden_j": alarm_recall + alarm_specificity - 1.0,
-        "alarm_prediction_rate": float(np.mean(predicted_alarm)),
-        "alarm_auc": compute_binary_auc(true_alarm, alarm_probability),
-        "alarm_confusion_matrix": alarm_confusion.tolist(),
-        "tp": int(tp),
-        "tn": int(tn),
-        "fp": int(fp),
-        "fn": int(fn),
-        "evaluated_duration_seconds": evaluated_duration_seconds,
-        "evaluated_duration_hours": evaluated_duration_hours,
-        "false_alarms_per_hour": false_alarms_per_hour,
-    }
+    alarm_probability = probabilities[:, 1] + probabilities[:, 2]
+    alarm_class = np.argmax(probabilities[:, 1:3], axis=1).astype(np.int64) + 1
+    return np.where(alarm_probability >= threshold, alarm_class, 0).astype(np.int64)
 
 
-def collect_model_outputs(model, loader, criterion):
-    """Run one inference pass and return labels, probabilities, and average loss."""
+def _collect_model_outputs(
+    model: torch.nn.Module,
+    loader: Iterable,
+    criterion: torch.nn.Module,
+) -> Tuple[float, np.ndarray, np.ndarray, int]:
     model.eval()
+
     total_loss = 0.0
     total_samples = 0
     all_true = []
-    all_scores = []
-    device = next(model.parameters()).device
+    all_probabilities = []
+
+    try:
+        device = next(model.parameters()).device
+    except StopIteration:
+        device = torch.device("cpu")
 
     with torch.no_grad():
-        for xb, yb in loader:
-            xb, yb = xb.to(device), yb.to(device)
-            outputs = model(xb)
-            loss = criterion(outputs, yb)
+        for batch in loader:
+            if not isinstance(batch, (tuple, list)) or len(batch) < 2:
+                raise ValueError("Each loader batch must provide (inputs, labels).")
 
-            batch_size = xb.size(0)
-            total_loss += loss.item() * batch_size
+            xb, yb = batch[0].to(device), batch[1].to(device)
+            logits = model(xb)
+
+            if logits.ndim != 2 or logits.shape[1] != 3:
+                raise ValueError(
+                    "Model output must have shape (batch, 3); "
+                    f"got {tuple(logits.shape)}."
+                )
+
+            loss = criterion(logits, yb)
+            batch_size = int(yb.shape[0])
+            total_loss += float(loss.item()) * batch_size
             total_samples += batch_size
-            all_true.extend(yb.cpu().numpy())
-            all_scores.extend(torch.softmax(outputs, dim=1).cpu().numpy())
+
+            probabilities = torch.softmax(logits, dim=1)
+            all_true.append(yb.detach().cpu().numpy())
+            all_probabilities.append(probabilities.detach().cpu().numpy())
 
     if total_samples == 0:
-        raise ValueError("Evaluation loader contains zero samples.")
+        raise ValueError("Evaluation loader contained zero samples.")
+
+    y_true = np.concatenate(all_true).astype(np.int64, copy=False)
+    y_prob = np.concatenate(all_probabilities).astype(np.float64, copy=False)
+    average_loss = total_loss / total_samples
+    return average_loss, y_true, y_prob, total_samples
+
+
+def compute_metrics_from_outputs(
+    y_true: Any,
+    y_prob: Any,
+    *,
+    average_loss: float = float("nan"),
+    window_step_s: float = 2.0,
+    decision_threshold: Optional[float] = 0.5,
+    smoothing_window: int = 0,
+) -> Dict[str, Any]:
+    """Compute the complete project metric dictionary from labels and probabilities."""
+    truth = _as_numpy_1d(y_true, "y_true").astype(np.int64, copy=False)
+    probabilities = _validate_probabilities(y_prob, len(truth))
+
+    invalid_labels = sorted(set(np.unique(truth).tolist()) - set(CLASS_IDS.tolist()))
+    if invalid_labels:
+        raise ValueError(f"y_true contains invalid class IDs: {invalid_labels}.")
+
+    if smoothing_window > 1:
+        probabilities = apply_temporal_smoothing(
+            probabilities, window_size=smoothing_window
+        )
+
+    predictions = probabilities_to_predictions(
+        probabilities, decision_threshold=decision_threshold
+    )
+
+    cm = confusion_matrix(truth, predictions, labels=CLASS_IDS)
+    accuracy = float(np.mean(truth == predictions))
+    balanced_accuracy = float(balanced_accuracy_score(truth, predictions))
+    macro_precision = float(
+        precision_score(truth, predictions, labels=CLASS_IDS, average="macro", zero_division=0)
+    )
+    macro_recall = float(
+        recall_score(truth, predictions, labels=CLASS_IDS, average="macro", zero_division=0)
+    )
+    macro_f1 = float(
+        f1_score(truth, predictions, labels=CLASS_IDS, average="macro", zero_division=0)
+    )
+    macro_auc = compute_multiclass_auc(truth, probabilities)
+
+    per_precision, per_recall, per_f1, per_support = precision_recall_fscore_support(
+        truth,
+        predictions,
+        labels=CLASS_IDS,
+        zero_division=0,
+    )
+
+    # Binary alarm interpretation: class 0 = background, classes 1/2 = alarm.
+    true_alarm = truth > 0
+    predicted_alarm = predictions > 0
+
+    tp = int(np.sum(true_alarm & predicted_alarm))
+    tn = int(np.sum(~true_alarm & ~predicted_alarm))
+    fp = int(np.sum(~true_alarm & predicted_alarm))
+    fn = int(np.sum(true_alarm & ~predicted_alarm))
+
+    alarm_sensitivity = tp / (tp + fn) if (tp + fn) else float("nan")
+    interictal_specificity = tn / (tn + fp) if (tn + fp) else float("nan")
+
+    total_samples = len(truth)
+    evaluated_duration_seconds = float(total_samples * window_step_s)
+    evaluated_duration_hours = evaluated_duration_seconds / 3600.0
+    false_alarms_per_hour = (
+        fp / evaluated_duration_hours if evaluated_duration_hours > 0 else float("nan")
+    )
 
     return {
-        "y_true": np.asarray(all_true, dtype=np.int64),
-        "y_prob": np.asarray(all_scores, dtype=np.float64),
-        "average_loss": total_loss / total_samples,
+        "loss": float(average_loss),
+        "accuracy": accuracy,
+        "balanced_accuracy": balanced_accuracy,
+        "precision": macro_precision,
+        "recall_sensitivity": macro_recall,  # retained for reporting compatibility
+        "specificity": float(interictal_specificity),
+        "f1": macro_f1,
+        "auc": macro_auc,
+        "decision_threshold": (
+            float(decision_threshold) if decision_threshold is not None else float("nan")
+        ),
+        "alarm_sensitivity": float(alarm_sensitivity),
+        "interictal_specificity": float(interictal_specificity),
+        "preictal_precision": float(per_precision[1]),
+        "preictal_recall": float(per_recall[1]),
+        "preictal_f1": float(per_f1[1]),
+        "ictal_precision": float(per_precision[2]),
+        "ictal_recall": float(per_recall[2]),
+        "ictal_f1": float(per_f1[2]),
+        "per_class_precision": per_precision.astype(float).tolist(),
+        "per_class_recall": per_recall.astype(float).tolist(),
+        "per_class_f1": per_f1.astype(float).tolist(),
+        "per_class_support": per_support.astype(int).tolist(),
+        "predicted_class_counts": np.bincount(predictions, minlength=3).astype(int).tolist(),
+        "true_class_counts": np.bincount(truth, minlength=3).astype(int).tolist(),
+        "confusion_matrix": cm.astype(int).tolist(),
+        "tp": tp,
+        "tn": tn,
+        "fp": fp,
+        "fn": fn,
+        "evaluated_duration_seconds": evaluated_duration_seconds,
+        "evaluated_duration_hours": evaluated_duration_hours,
+        "false_alarms_per_hour": float(false_alarms_per_hour),
     }
 
 
 def evaluate_model(
-    model,
-    loader,
-    criterion,
-    window_step_s=2.0,
-    decision_threshold=0.5,
-    smoothing_window=0,
-):
-    """Evaluate primary multiclass and secondary alarm tasks."""
-    outputs = collect_model_outputs(model, loader, criterion)
-    return calculate_metrics_from_probabilities(
-        y_true=outputs["y_true"],
-        y_prob=outputs["y_prob"],
-        average_loss=outputs["average_loss"],
+    model: torch.nn.Module,
+    loader: Iterable,
+    criterion: torch.nn.Module,
+    window_step_s: float = 2.0,
+    decision_threshold: Optional[float] = 0.5,
+    smoothing_window: int = 0,
+) -> Dict[str, Any]:
+    """Evaluate a model once and compute leakage-safe three-class metrics."""
+    average_loss, y_true, y_prob, _ = _collect_model_outputs(model, loader, criterion)
+    return compute_metrics_from_outputs(
+        y_true,
+        y_prob,
+        average_loss=average_loss,
         window_step_s=window_step_s,
         decision_threshold=decision_threshold,
         smoothing_window=smoothing_window,
     )
 
 
-def select_best_threshold_from_rows(
-    sweep_rows,
-    selection_policy="balanced_accuracy",
-    min_specificity=0.80,
-):
-    """Select one validation threshold using a non-degenerate alarm policy.
-
-    Policies:
-      balanced_accuracy: maximize (sensitivity + specificity) / 2.
-      youden_j: maximize sensitivity + specificity - 1.
-      f1: maximize alarm F1 (kept for comparison; may select all-alarm).
-      specificity_constrained: maximize sensitivity subject to specificity >= minimum.
-    """
-    if not sweep_rows:
-        raise ValueError("Threshold sweep contains no rows.")
-    if not 0.0 <= min_specificity <= 1.0:
-        raise ValueError("min_specificity must be between 0 and 1.")
-
-    valid_policies = {
-        "balanced_accuracy",
-        "youden_j",
-        "f1",
-        "specificity_constrained",
-    }
-    if selection_policy not in valid_policies:
-        raise ValueError(
-            f"Unknown selection_policy={selection_policy!r}. "
-            f"Choose from {sorted(valid_policies)}."
-        )
-
-    candidates = []
-    for row in sweep_rows:
-        if selection_policy == "specificity_constrained":
-            if float(row["alarm_specificity"]) + 1e-12 < min_specificity:
-                continue
-            primary_score = float(row["alarm_sensitivity"])
-        elif selection_policy == "balanced_accuracy":
-            primary_score = float(row["alarm_balanced_accuracy"])
-        elif selection_policy == "youden_j":
-            primary_score = float(row["alarm_youden_j"])
-        else:
-            primary_score = float(row["alarm_f1"])
-
-        if not np.isfinite(primary_score):
-            continue
-
-        # Deterministic tie-breaking: prefer higher specificity, then fewer
-        # false-positive windows/hour, then a threshold nearer 0.5.
-        key = (
-            primary_score,
-            float(row["alarm_specificity"]),
-            -float(row["false_alarms_per_hour"]),
-            -abs(float(row["threshold"]) - 0.5),
-        )
-        candidates.append((key, row))
-
-    if not candidates and selection_policy == "specificity_constrained":
-        # Do not silently fail. Use the highest-specificity operating point and
-        # expose that the requested constraint was not achievable.
-        fallback = max(
-            sweep_rows,
-            key=lambda row: (
-                float(row["alarm_specificity"]),
-                float(row["alarm_sensitivity"]),
-                -float(row["false_alarms_per_hour"]),
-            ),
-        )
-        return fallback, False
-
-    if not candidates:
-        raise RuntimeError("No finite validation threshold candidates were available.")
-
-    candidates.sort(key=lambda item: item[0], reverse=True)
-    return candidates[0][1], True
-
-
 def find_best_threshold(
-    model,
-    loader,
-    criterion,
-    window_step_s=2.0,
-    metric_name=None,
-    min_threshold=0.05,
-    max_threshold=0.95,
-    step=0.01,
-    smoothing_window=0,
-    selection_policy="balanced_accuracy",
-    min_specificity=0.80,
-):
-    """Tune the secondary alarm threshold using validation data only.
-
-    ``metric_name`` is retained for backward compatibility. When supplied,
-    ``alarm_f1`` maps to the legacy F1 policy and ``alarm_balanced_accuracy``
-    maps to the safer balanced-accuracy policy.
+    model: torch.nn.Module,
+    loader: Iterable,
+    criterion: torch.nn.Module,
+    window_step_s: float = 2.0,
+    metric_name: str = "f1",
+    min_threshold: float = 0.05,
+    max_threshold: float = 0.95,
+    step: float = 0.01,
+    smoothing_window: int = 0,
+) -> Dict[str, Any]:
     """
-    if metric_name is not None:
-        mapping = {
-            "alarm_f1": "f1",
-            "alarm_balanced_accuracy": "balanced_accuracy",
-            "alarm_youden_j": "youden_j",
-        }
-        selection_policy = mapping.get(metric_name, selection_policy)
+    Select an alarm threshold using validation data only.
 
-    outputs = collect_model_outputs(model, loader, criterion)
-    thresholds = np.arange(min_threshold, max_threshold + (step / 2.0), step)
-    sweep_rows = []
-    metrics_by_threshold = {}
+    Model inference is performed once. Threshold candidates are then evaluated
+    against the same cached probabilities, avoiding dozens of repeated passes.
+    """
+    if step <= 0:
+        raise ValueError("step must be positive.")
+    if min_threshold > max_threshold:
+        raise ValueError("min_threshold cannot exceed max_threshold.")
+
+    average_loss, y_true, y_prob, _ = _collect_model_outputs(model, loader, criterion)
+    if smoothing_window > 1:
+        y_prob = apply_temporal_smoothing(y_prob, smoothing_window)
+
+    thresholds = np.arange(min_threshold, max_threshold + step / 2.0, step)
+    best_threshold = None
+    best_score = -np.inf
+    best_metrics = None
 
     for threshold in thresholds:
-        threshold = float(threshold)
-        metrics = calculate_metrics_from_probabilities(
-            y_true=outputs["y_true"],
-            y_prob=outputs["y_prob"],
-            average_loss=outputs["average_loss"],
+        metrics = compute_metrics_from_outputs(
+            y_true,
+            y_prob,
+            average_loss=average_loss,
             window_step_s=window_step_s,
-            decision_threshold=threshold,
-            smoothing_window=smoothing_window,
+            decision_threshold=float(threshold),
+            smoothing_window=0,
         )
-        row = {
-            "threshold": threshold,
-            "macro_f1": metrics["f1"],
-            "balanced_accuracy": metrics["balanced_accuracy"],
-            "interictal_recall": metrics["per_class_recall"][0],
-            "preictal_recall": metrics["per_class_recall"][1],
-            "ictal_recall": metrics["per_class_recall"][2],
-            "alarm_accuracy": metrics["alarm_accuracy"],
-            "alarm_balanced_accuracy": metrics["alarm_balanced_accuracy"],
-            "alarm_precision": metrics["alarm_precision"],
-            "alarm_sensitivity": metrics["alarm_recall_sensitivity"],
-            "alarm_specificity": metrics["alarm_specificity"],
-            "alarm_f1": metrics["alarm_f1"],
-            "alarm_youden_j": metrics["alarm_youden_j"],
-            "alarm_prediction_rate": metrics["alarm_prediction_rate"],
-            "alarm_auc": metrics["alarm_auc"],
-            "false_alarms_per_hour": metrics["false_alarms_per_hour"],
-        }
-        sweep_rows.append(row)
-        metrics_by_threshold[round(threshold, 10)] = metrics
 
-    selected_row, constraint_met = select_best_threshold_from_rows(
-        sweep_rows=sweep_rows,
-        selection_policy=selection_policy,
-        min_specificity=min_specificity,
-    )
-    best_threshold = float(selected_row["threshold"])
-    best_metrics = metrics_by_threshold[round(best_threshold, 10)]
+        if metric_name not in metrics:
+            raise KeyError(f"Unknown threshold-selection metric: {metric_name}")
+        score = float(metrics[metric_name])
+        if not np.isfinite(score):
+            continue
 
-    if selection_policy == "balanced_accuracy":
-        best_score = float(selected_row["alarm_balanced_accuracy"])
-    elif selection_policy == "youden_j":
-        best_score = float(selected_row["alarm_youden_j"])
-    elif selection_policy == "f1":
-        best_score = float(selected_row["alarm_f1"])
-    else:
-        best_score = float(selected_row["alarm_sensitivity"])
+        if score > best_score:
+            best_score = score
+            best_threshold = float(threshold)
+            best_metrics = metrics
+
+    if best_threshold is None or best_metrics is None:
+        raise RuntimeError("No finite threshold-selection score was produced.")
 
     return {
         "best_threshold": best_threshold,
-        "best_score": best_score,
-        "metric_name": selection_policy,
-        "selection_policy": selection_policy,
-        "min_specificity": float(min_specificity),
-        "specificity_constraint_met": bool(constraint_met),
+        "best_score": float(best_score),
+        "metric_name": metric_name,
         "best_metrics": best_metrics,
-        "sweep_rows": sweep_rows,
     }
 
 
-def get_labels_from_split(split_dataset):
-    """Extract labels from TensorDataset or torch.utils.data.Subset."""
+def get_labels_from_split(split_dataset: Any) -> np.ndarray:
+    """Retrieve labels from TensorDataset, Subset, or a lazy dataset API."""
+    if hasattr(split_dataset, "get_all_labels"):
+        labels = split_dataset.get_all_labels()
+        return np.asarray(labels, dtype=np.int64)
+
+    if hasattr(split_dataset, "labels"):
+        labels = split_dataset.labels
+        if torch.is_tensor(labels):
+            labels = labels.detach().cpu().numpy()
+        return np.asarray(labels, dtype=np.int64)
+
     if hasattr(split_dataset, "dataset") and hasattr(split_dataset, "indices"):
-        labels_tensor = split_dataset.dataset.tensors[1]
-        return labels_tensor[split_dataset.indices].cpu().numpy()
-    if hasattr(split_dataset, "tensors"):
-        return split_dataset.tensors[1].cpu().numpy()
+        parent_labels = get_labels_from_split(split_dataset.dataset)
+        return np.asarray(parent_labels)[np.asarray(split_dataset.indices)]
+
+    if hasattr(split_dataset, "tensors") and len(split_dataset.tensors) >= 2:
+        labels = split_dataset.tensors[1]
+        if torch.is_tensor(labels):
+            labels = labels.detach().cpu().numpy()
+        return np.asarray(labels, dtype=np.int64)
+
     raise TypeError(f"Unsupported dataset type: {type(split_dataset)}")
 
 
-def compute_majority_class_baseline(train_dataset, test_dataset, window_step_s=2.0):
-    """Evaluate a fixed majority-class baseline using identical metric definitions."""
-    train_labels = np.asarray(get_labels_from_split(train_dataset), dtype=np.int64)
-    test_labels = np.asarray(get_labels_from_split(test_dataset), dtype=np.int64)
+def compute_majority_class_baseline(
+    train_dataset: Any,
+    test_dataset: Any,
+    window_step_s: float = 2.0,
+) -> Dict[str, Any]:
+    """Compute a real three-class majority baseline using the training majority."""
+    train_labels = get_labels_from_split(train_dataset)
+    test_labels = get_labels_from_split(test_dataset)
 
-    if train_labels.size == 0 or test_labels.size == 0:
-        raise ValueError("Majority-class baseline requires non-empty train and test splits.")
-
-    n_classes = max(3, int(max(train_labels.max(), test_labels.max())) + 1)
-    train_class_counts = np.bincount(train_labels, minlength=n_classes)
+    train_class_counts = np.bincount(train_labels, minlength=3)
     majority_class = int(np.argmax(train_class_counts))
 
-    probabilities = np.zeros((test_labels.size, n_classes), dtype=np.float64)
+    predictions = np.full(len(test_labels), majority_class, dtype=np.int64)
+    probabilities = np.zeros((len(test_labels), 3), dtype=np.float64)
     probabilities[:, majority_class] = 1.0
 
-    metrics = calculate_metrics_from_probabilities(
-        y_true=test_labels,
-        y_prob=probabilities,
+    metrics = compute_metrics_from_outputs(
+        test_labels,
+        probabilities,
         average_loss=float("nan"),
         window_step_s=window_step_s,
-        decision_threshold=0.5,
+        decision_threshold=None,
         smoothing_window=0,
     )
     metrics.update(
         {
             "majority_class": majority_class,
-            "train_class_counts": train_class_counts.tolist(),
+            "train_interictal_count": int(train_class_counts[0]),
+            "train_preictal_count": int(train_class_counts[1]),
+            "train_ictal_count": int(train_class_counts[2]),
+            # Legacy fields retained for existing report code.
             "train_non_seizure_count": int(train_class_counts[0]),
-            "train_seizure_count": int(train_class_counts[1:].sum()),
+            "train_seizure_count": int(train_class_counts[1] + train_class_counts[2]),
         }
     )
     return metrics

@@ -1,0 +1,22 @@
+Static INT8 QDQ Quantization Summary
+========================================================================
+
+Status                    : PASS
+Model                     : SeizureTCN
+Calibration split         : Training patients only
+Training patients        : 14
+Calibration windows       : 420
+Quantization format       : QDQ
+Activation type           : QInt8
+Weight type               : QInt8
+Calibration method        : MinMax
+QuantizeLinear nodes      : 20
+DequantizeLinear nodes    : 38
+FP32 size KiB             : 358.53
+INT8 size KiB             : 277.12
+Size reduction percent    : 22.71
+FP32 SHA256               : af31d5a99ac683786b70abc4eea774d9c3b9564af41856358280060cd2f77420
+INT8 SHA256               : 9fbac2f59b5acd0276036f8ab9ea65c6bc8555d71b5ba9c16124062889e43969
+
+Important: Successful quantization and graph validation do not prove retained predictive quality.
+FP32 versus INT8 parity and held-out test evaluation must be completed next.

@@ -1,0 +1,141 @@
+P20 EEG Data-Contract Integrity Audit
+=====================================
+
+Generated UTC      : 2026-08-06T04:31:27.079237+00:00
+Project root       : E:\FYP\eeg-seizure-mlops
+Processed data dir : E:\FYP\eeg-seizure-mlops\data\processed\tusz
+Frozen split       : E:\FYP\eeg-seizure-mlops\experiments\splits\p20_frozen_split.json
+Overall status     : WARN
+
+Immutable class contract
+------------------------
+0 = Interictal
+1 = Pre-Ictal
+2 = Ictal
+
+Global checks
+-------------
+[PASS] Train/validation/test patient IDs are disjoint.
+[PASS] Frozen split contains exactly 20 unique patients.
+[PASS] Split JSON is marked frozen.
+[WARN] No P20 NPZ stores channel names/order. Exact channel-order consistency remains unverified and must be traced to preprocessing code/TTL.
+[INFO] Pre-ictal evidence matches written: 324
+[INFO] Expected window contract: 20 channels × 512 samples, 128 Hz, 4 s duration, 2 s step.
+
+Patient summary
+---------------
+Patients audited: 20 | PASS=0 WARN=20 FAIL=0
+Total windows: 65487 | Interictal=53221 | Pre-Ictal=9017 | Ictal=3249
+
+[WARN] aaaaaajy (train) — N=2329, labels=268/692/1369, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=5.96e-08; constant channel-windows=0.
+
+[WARN] aaaaaarq (train) — N=10431, labels=9511/778/142, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=7.45e-08; constant channel-windows=0.
+
+[WARN] aaaaaazz (train) — N=1238, labels=667/483/88, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=1.19e-07; constant channel-windows=0.
+
+[WARN] aaaaabep (train) — N=635, labels=635/0/0, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=4.47e-08; constant channel-windows=0.
+
+[WARN] aaaaaclc (train) — N=610, labels=610/0/0, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=7.45e-08; constant channel-windows=0.
+
+[WARN] aaaaacqc (train) — N=2996, labels=1890/918/188, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=5.96e-08; constant channel-windows=0.
+
+[WARN] aaaaacyi (train) — N=728, labels=142/544/42, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=8.94e-08; constant channel-windows=0.
+
+[WARN] aaaaadkb (train) — N=10481, labels=10481/0/0, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=5.96e-08; constant channel-windows=0.
+
+[WARN] aaaaaefp (train) — N=1216, labels=924/283/9, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=1.04e-07; constant channel-windows=0.
+
+[WARN] aaaaaewf (train) — N=2198, labels=1203/975/20, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=7.45e-08; constant channel-windows=0.
+
+[WARN] aaaaaexe (train) — N=711, labels=30/664/17, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=5.96e-08; constant channel-windows=0.
+
+[WARN] aaaaafjv (train) — N=807, labels=807/0/0, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=8.94e-08; constant channel-windows=0.
+
+[WARN] aaaaagbf (train) — N=11041, labels=10061/818/162, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=3.73e-08; constant channel-windows=0.
+
+[WARN] aaaaagdr (train) — N=1299, labels=721/419/159, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=5.96e-08; constant channel-windows=0.
+
+[WARN] aaaaaaaq (validation) — N=4568, labels=4111/451/6, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=7.45e-08; constant channel-windows=0.
+
+[WARN] aaaaaamc (validation) — N=2427, labels=2427/0/0, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=5.22e-08; constant channel-windows=0.
+
+[WARN] aaaaadkj (validation) — N=2178, labels=768/811/599, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=8.94e-08; constant channel-windows=0.
+
+[WARN] aaaaaayf (test) — N=3775, labels=3270/218/287, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=8.94e-08; constant channel-windows=0.
+
+[WARN] aaaaabxe (test) — N=2610, labels=2345/251/14, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=4.47e-08; constant channel-windows=0.
+
+[WARN] aaaaafcf (test) — N=3209, labels=2350/712/147, shape=(20,512), sfreq=128
+    [WARN] Window step/overlap is not stored in NPZ; expected 2.0s must be verified from preprocessing code/config.
+    [WARN] Channel names/order are not stored in the NPZ and cannot be verified from this artifact alone.
+    [PASS] Training-time normalization contract works on sample: simulated z-score max|mean|=1.12e-07; constant channel-windows=0.
+
+Manual scientific fields still requiring confirmation
+------------------------------------------------------
+Pre-ictal duration/horizon : NOT AUTOMATICALLY CONCLUDED
+Prediction gap / SPH       : NOT AUTOMATICALLY CONCLUDED
+Post-ictal exclusion       : NOT AUTOMATICALLY CONCLUDED
+Clustered-seizure rule     : NOT AUTOMATICALLY CONCLUDED
+Boundary-window policy     : NOT AUTOMATICALLY CONCLUDED
+Review reports/model_improvement/preictal_definition_evidence.txt and then replace these lines with evidence-backed values.
+
+Interpretation
+--------------
+PASS means the machine-checkable artifact contract passed. WARN means a field such as channel names or window step was not stored and therefore remains unverified. FAIL blocks new model-training claims until corrected.

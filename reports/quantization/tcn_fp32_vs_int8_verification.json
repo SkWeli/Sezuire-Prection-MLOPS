@@ -1,0 +1,163 @@
+{
+  "status": "pass",
+  "created_at": "2026-07-22T14:25:51.576509+05:30",
+  "scientific_status": "Research prototype only; not clinically validated; not a medical device.",
+  "patient_id": "aaaaaayf",
+  "selected_window_indices": [
+    0,
+    2556,
+    2542
+  ],
+  "alarm_threshold": 0.17,
+  "artifacts": {
+    "fp32": {
+      "path": "E:\\FYP\\eeg-seizure-mlops\\models\\onnx\\seizure_tcn_p20_baseline_fp32.onnx",
+      "sha256": "af31d5a99ac683786b70abc4eea774d9c3b9564af41856358280060cd2f77420",
+      "size_bytes": 367131,
+      "graph": {
+        "actual_opset": 18,
+        "input_names": [
+          "eeg_input"
+        ],
+        "output_names": [
+          "logits"
+        ],
+        "total_nodes": 40,
+        "quantize_linear_nodes": 0,
+        "dequantize_linear_nodes": 0
+      }
+    },
+    "int8": {
+      "path": "E:\\FYP\\eeg-seizure-mlops\\models\\onnx\\seizure_tcn_p20_baseline_int8_qdq.onnx",
+      "sha256": "9fbac2f59b5acd0276036f8ab9ea65c6bc8555d71b5ba9c16124062889e43969",
+      "size_bytes": 283766,
+      "graph": {
+        "actual_opset": 18,
+        "input_names": [
+          "eeg_input"
+        ],
+        "output_names": [
+          "logits"
+        ],
+        "total_nodes": 98,
+        "quantize_linear_nodes": 20,
+        "dequantize_linear_nodes": 38
+      }
+    }
+  },
+  "comparison": {
+    "maximum_absolute_logit_difference": 0.15658938884735107,
+    "mean_absolute_logit_difference": 0.0751517191529274,
+    "maximum_absolute_probability_difference": 0.0443519651889801,
+    "mean_absolute_probability_difference": 0.016589943319559097,
+    "predictions_matching": 3,
+    "predictions_total": 3,
+    "alarm_decisions_matching": 3,
+    "alarm_decisions_total": 3,
+    "windows": [
+      {
+        "window_index": 0,
+        "true_class": 0,
+        "true_class_name": "Interictal",
+        "fp32_prediction": 1,
+        "fp32_prediction_name": "Pre-Ictal",
+        "int8_prediction": 1,
+        "int8_prediction_name": "Pre-Ictal",
+        "prediction_match": true,
+        "fp32_probabilities": [
+          0.17747049033641815,
+          0.715172529220581,
+          0.10735704004764557
+        ],
+        "int8_probabilities": [
+          0.17413359880447388,
+          0.7414796352386475,
+          0.08438674360513687
+        ],
+        "fp32_alarm_probability": 0.8225295543670654,
+        "int8_alarm_probability": 0.8258664011955261,
+        "fp32_alarm_decision": true,
+        "int8_alarm_decision": true,
+        "alarm_decision_match": true
+      },
+      {
+        "window_index": 2556,
+        "true_class": 1,
+        "true_class_name": "Pre-Ictal",
+        "fp32_prediction": 0,
+        "fp32_prediction_name": "Interictal",
+        "int8_prediction": 0,
+        "int8_prediction_name": "Interictal",
+        "prediction_match": true,
+        "fp32_probabilities": [
+          0.4567209780216217,
+          0.42336133122444153,
+          0.11991767585277557
+        ],
+        "int8_probabilities": [
+          0.4607166349887848,
+          0.4208311140537262,
+          0.11845225095748901
+        ],
+        "fp32_alarm_probability": 0.5432789921760559,
+        "int8_alarm_probability": 0.5392833948135376,
+        "fp32_alarm_decision": true,
+        "int8_alarm_decision": true,
+        "alarm_decision_match": true
+      },
+      {
+        "window_index": 2542,
+        "true_class": 2,
+        "true_class_name": "Ictal",
+        "fp32_prediction": 1,
+        "fp32_prediction_name": "Pre-Ictal",
+        "int8_prediction": 1,
+        "int8_prediction_name": "Pre-Ictal",
+        "prediction_match": true,
+        "fp32_probabilities": [
+          0.16618923842906952,
+          0.4474124610424042,
+          0.3863983452320099
+        ],
+        "int8_probabilities": [
+          0.16589932143688202,
+          0.4917644262313843,
+          0.3423363268375397
+        ],
+        "fp32_alarm_probability": 0.8338108062744141,
+        "int8_alarm_probability": 0.8341007232666016,
+        "fp32_alarm_decision": true,
+        "int8_alarm_decision": true,
+        "alarm_decision_match": true
+      }
+    ]
+  },
+  "deployment": {
+    "size_reduction_percent": 22.70715357733343,
+    "fp32_latency": {
+      "warmup_runs": 20,
+      "timed_runs": 200,
+      "mean_ms": 1.9339860018226318,
+      "median_ms": 1.8675499595701694,
+      "minimum_ms": 1.410100026987493,
+      "maximum_ms": 4.9640999641269445,
+      "standard_deviation_ms": 0.38209040980428965
+    },
+    "int8_latency": {
+      "warmup_runs": 20,
+      "timed_runs": 200,
+      "mean_ms": 1.3505229991278611,
+      "median_ms": 1.3172999897506088,
+      "minimum_ms": 0.9219999774359167,
+      "maximum_ms": 2.2701999987475574,
+      "standard_deviation_ms": 0.24878406822306992
+    },
+    "latency_change_percent": -30.16893618386597
+  },
+  "versions": {
+    "numpy": "2.4.6",
+    "onnx": "1.22.0",
+    "onnxruntime": "1.27.0"
+  },
+  "interpretation": "This report compares artifact behaviour on three illustrative held-out windows. Full held-out test-set evaluation is still required before selecting the INT8 deployment candidate."
+}

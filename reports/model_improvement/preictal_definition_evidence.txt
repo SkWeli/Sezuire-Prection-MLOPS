@@ -1,0 +1,329 @@
+Pre-Ictal Definition Evidence Scan
+=================================
+
+This is an evidence locator, not an automatic scientific conclusion. Review the matched preprocessing lines and write the final horizon, gap, post-ictal exclusion, and boundary policy into the data-contract report.
+
+experiments\configs\preprocessing.yaml:22: pre_ictal_min_s: 30       # minimum seconds before seizure onset
+experiments\configs\preprocessing.yaml:23: pre_ictal_max_s: 120      # maximum seconds before seizure onset
+offline_demo\config.py:135: "Pre-Ictal",
+offline_demo\demo.py:59: "Pre-Ictal": 2556,
+offline_demo\demo.py:65: "Pre-Ictal": 1,
+offline_demo\demo.py:314: "n_pre_ictal",
+offline_demo\demo.py:363: "n_pre_ictal": int(
+offline_demo\demo.py:365: data["n_pre_ictal"]
+offline_demo\demo.py:411: metadata["n_pre_ictal"],
+offline_demo\demo.py:432: f"Pre-Ictal={actual_counts[1]}, "
+offline_demo\demo.py:454: ["Interictal", "Pre-Ictal", "Ictal"],
+offline_demo\demo.py:465: "Pre-Ictal",
+offline_demo\onnx_runtime_demo.py:692: f"Pre-Ictal={int(class_counts[1])}, "
+offline_demo\pytorch_demo.py:324: argmax over Interictal, Pre-Ictal and Ictal probabilities.
+offline_demo\pytorch_demo.py:327: P(Pre-Ictal) + P(Ictal)
+offline_demo\pytorch_demo.py:621: f"Pre-Ictal={int(class_counts[1])}, "
+ontology\eeg_epilepsy.ttl:12: rdfs:comment "OWL ontology for representing EEG seizure detection and pre-ictal prediction pipelines. Covers patients, recording sessions, channels, seizure events, pre-ictal windows, preprocessing steps, and edge deployment." ;
+ontology\eeg_epilepsy.ttl:44: eeg:PreIctalWindow a owl:Class ;
+ontology\eeg_epilepsy.ttl:45: rdfs:label "Pre-Ictal Window" ;
+ontology\eeg_epilepsy.ttl:46: rdfs:comment "The EEG epoch immediately preceding a seizure onset, used as the positive class for pre-ictal prediction. Duration must be between 30 and 120 seconds. Starts at (onset - duration) and ends at onset." .
+ontology\eeg_epilepsy.ttl:91: eeg:hasPreIctalWindow a owl:ObjectProperty ;
+ontology\eeg_epilepsy.ttl:92: rdfs:label "has pre-ictal window" ;
+ontology\eeg_epilepsy.ttl:93: rdfs:comment "Links a SeizureEvent to the PreIctalWindow that immediately precedes its onset." ;
+ontology\eeg_epilepsy.ttl:95: rdfs:range  eeg:PreIctalWindow .
+ontology\eeg_epilepsy.ttl:156: rdfs:comment "Seizure onset time in seconds from the start of the EDF file. Must be strictly less than hasOffset." ;
+ontology\eeg_epilepsy.ttl:166: # PreIctalWindow
+ontology\eeg_epilepsy.ttl:170: rdfs:comment "Duration of the pre-ictal window in seconds. Must be between 30 and 120 seconds." ;
+ontology\eeg_epilepsy.ttl:171: rdfs:domain eeg:PreIctalWindow ;
+ontology\eeg_epilepsy.ttl:176: rdfs:comment "Start time of the pre-ictal window in seconds (= seizure onset - windowDuration)." ;
+ontology\eeg_epilepsy.ttl:177: rdfs:domain eeg:PreIctalWindow ;
+ontology\eeg_epilepsy.ttl:182: rdfs:comment "End time of the pre-ictal window in seconds (= seizure onset)." ;
+ontology\eeg_epilepsy.ttl:183: rdfs:domain eeg:PreIctalWindow ;
+ontology\shacl_shapes.ttl:172: sh:description "Seizure onset must be strictly less than seizure offset." ;
+ontology\shacl_shapes.ttl:191: # Optional pre-ictal window link
+ontology\shacl_shapes.ttl:193: sh:path        eeg:hasPreIctalWindow ;
+ontology\shacl_shapes.ttl:194: sh:name        "hasPreIctalWindow" ;
+ontology\shacl_shapes.ttl:195: sh:description "If a pre-ictal window is declared, it must point to a PreIctalWindow individual." ;
+ontology\shacl_shapes.ttl:196: sh:class       eeg:PreIctalWindow ;
+ontology\shacl_shapes.ttl:197: sh:message     "eeg:hasPreIctalWindow must link to an eeg:PreIctalWindow individual." ;
+ontology\shacl_shapes.ttl:201: # PreIctalWindow Shape
+ontology\shacl_shapes.ttl:203: eeg:PreIctalWindowShape a sh:NodeShape ;
+ontology\shacl_shapes.ttl:204: sh:targetClass eeg:PreIctalWindow ;
+ontology\shacl_shapes.ttl:205: rdfs:label "Pre-Ictal Window Shape" ;
+ontology\shacl_shapes.ttl:206: rdfs:comment "Validates that every PreIctalWindow has a duration between 30 and 120 seconds." ;
+ontology\shacl_shapes.ttl:211: sh:description "Pre-ictal window duration must be an xsd:float in [30, 120] seconds." ;
+ontology\shacl_shapes.ttl:224: sh:description "Pre-ictal window must declare its start time (seconds from file start)." ;
+ontology\shacl_shapes.ttl:236: sh:description "Pre-ictal window must declare its end time (seconds from file start)." ;
+README.md:4: > Detection and Pre-Ictal Prediction
+reports\archive\tusz-multi_cnn_10patients_1epoch_balanced_metrics.txt:18: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\archive\tusz-multi_cnn_10patients_1epoch_balanced_metrics.txt:20: Pre-Ictal                          990           113            33
+reports\archive\tusz-multi_cnn_10patients_1epoch_balanced_metrics.txt:25: Alarm = Pre-Ictal or Ictal
+reports\archive\tusz-multi_cnn_10patients_8epochs_before_v3_metrics.txt:18: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\archive\tusz-multi_cnn_10patients_8epochs_before_v3_metrics.txt:20: Pre-Ictal                          296           810            30
+reports\archive\tusz-multi_cnn_10patients_8epochs_before_v3_metrics.txt:25: Alarm = Pre-Ictal or Ictal
+reports\archive\tusz-multi_cnn_10patients_8epochs_metrics.txt:18: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\archive\tusz-multi_cnn_10patients_8epochs_metrics.txt:20: Pre-Ictal                          296           810            30
+reports\archive\tusz-multi_cnn_10patients_8epochs_metrics.txt:25: Alarm = Pre-Ictal or Ictal
+reports\archive\tusz-multi_cnn_10patients_alarm_spec80_metrics.txt:19: Pre-Ictal               0.0346      0.0942        0.4697      0.0506
+reports\archive\tusz-multi_cnn_10patients_alarm_spec80_metrics.txt:24: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\archive\tusz-multi_cnn_10patients_alarm_spec80_metrics.txt:26: Pre-Ictal                           23           107          1006
+reports\archive\tusz-multi_cnn_10patients_alarm_spec80_metrics.txt:31: Alarm = Pre-Ictal or Ictal
+reports\evaluation\tusz-multi_cnn_alarm_balanced_test_metrics.txt:19: Pre-Ictal               0.0346      0.0942        0.4697      0.0506
+reports\evaluation\tusz-multi_cnn_alarm_balanced_test_metrics.txt:24: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\evaluation\tusz-multi_cnn_alarm_balanced_test_metrics.txt:26: Pre-Ictal                           23           107          1006
+reports\evaluation\tusz-multi_cnn_alarm_balanced_test_metrics.txt:31: Alarm = Pre-Ictal or Ictal
+reports\evaluation\tusz-multi_cnn_alarm_spec80_test_metrics.txt:19: Pre-Ictal               0.0346      0.0942        0.4697      0.0506
+reports\evaluation\tusz-multi_cnn_alarm_spec80_test_metrics.txt:24: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\evaluation\tusz-multi_cnn_alarm_spec80_test_metrics.txt:26: Pre-Ictal                           23           107          1006
+reports\evaluation\tusz-multi_cnn_alarm_spec80_test_metrics.txt:31: Alarm = Pre-Ictal or Ictal
+reports\evaluation\tusz-multi_cnn_cnn_p12_memory_test_test_metrics.txt:19: Pre-Ictal               0.0876      0.4051        0.6653      0.1440
+reports\evaluation\tusz-multi_cnn_cnn_p12_memory_test_test_metrics.txt:24: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\evaluation\tusz-multi_cnn_cnn_p12_memory_test_test_metrics.txt:26: Pre-Ictal                          160           190           119
+reports\evaluation\tusz-multi_cnn_cnn_p12_memory_test_test_metrics.txt:31: Alarm = Pre-Ictal or Ictal
+reports\evaluation\tusz-multi_cnn_repro_a_test_metrics.txt:19: Pre-Ictal               0.0346      0.0942        0.4697      0.0506
+reports\evaluation\tusz-multi_cnn_repro_a_test_metrics.txt:24: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\evaluation\tusz-multi_cnn_repro_a_test_metrics.txt:26: Pre-Ictal                           23           107          1006
+reports\evaluation\tusz-multi_cnn_repro_a_test_metrics.txt:31: Alarm = Pre-Ictal or Ictal
+reports\evaluation\tusz-multi_cnn_repro_b_test_metrics.txt:19: Pre-Ictal               0.0346      0.0942        0.4697      0.0506
+reports\evaluation\tusz-multi_cnn_repro_b_test_metrics.txt:24: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\evaluation\tusz-multi_cnn_repro_b_test_metrics.txt:26: Pre-Ictal                           23           107          1006
+reports\evaluation\tusz-multi_cnn_repro_b_test_metrics.txt:31: Alarm = Pre-Ictal or Ictal
+reports\evaluation\tusz-multi_cnn_test_metrics.txt:18: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\evaluation\tusz-multi_cnn_test_metrics.txt:20: Pre-Ictal                          296           810            30
+reports\evaluation\tusz-multi_cnn_test_metrics.txt:25: Alarm = Pre-Ictal or Ictal
+reports\evaluation\tusz-multi_tcn_tcn_p12_memory_test_test_metrics.txt:19: Pre-Ictal               0.1161      0.4776        0.7118      0.1868
+reports\evaluation\tusz-multi_tcn_tcn_p12_memory_test_test_metrics.txt:24: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\evaluation\tusz-multi_tcn_tcn_p12_memory_test_test_metrics.txt:26: Pre-Ictal                          197           224            48
+reports\evaluation\tusz-multi_tcn_tcn_p12_memory_test_test_metrics.txt:31: Alarm = Pre-Ictal or Ictal
+reports\evaluation\tusz-multi_tcn_test_metrics.txt:18: Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+reports\evaluation\tusz-multi_tcn_test_metrics.txt:20: Pre-Ictal                            5           446             0
+reports\evaluation\tusz-multi_tcn_test_metrics.txt:25: Alarm = Pre-Ictal or Ictal
+reports\onnx\tcn_fp32_onnx_export_manifest.json:31: "Pre-Ictal",
+reports\onnx\tcn_fp32_onnx_export_manifest.json:48: "class_1": "Pre-Ictal",
+reports\onnx\tcn_fp32_onnx_parity_report.json:57: "pytorch_prediction_name": "Pre-Ictal",
+reports\onnx\tcn_fp32_onnx_parity_report.json:59: "onnx_prediction_name": "Pre-Ictal",
+reports\onnx\tcn_fp32_onnx_parity_report.json:95: "pytorch_prediction_name": "Pre-Ictal",
+reports\onnx\tcn_fp32_onnx_parity_report.json:97: "onnx_prediction_name": "Pre-Ictal",
+reports\onnx\tcn_fp32_onnx_parity_report.json:117: "true_class_name": "Pre-Ictal",
+reports\onnx\tcn_fp32_onnx_parity_report.json:143: "pytorch_prediction_name": "Pre-Ictal",
+reports\onnx\tcn_fp32_onnx_parity_report.json:145: "onnx_prediction_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_fp32_onnx_offline_demo_20260722_144300.json:81: "Pre-Ictal": 218,
+reports\prototype_demo\aaaaaayf_fp32_onnx_offline_demo_20260722_144300.json:110: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_fp32_onnx_offline_demo_20260722_144300.json:114: "Pre-Ictal": 0.715172529220581,
+reports\prototype_demo\aaaaaayf_fp32_onnx_offline_demo_20260722_144300.json:124: "true_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_fp32_onnx_offline_demo_20260722_144300.json:130: "Pre-Ictal": 0.42336133122444153,
+reports\prototype_demo\aaaaaayf_fp32_onnx_offline_demo_20260722_144300.json:142: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_fp32_onnx_offline_demo_20260722_144300.json:146: "Pre-Ictal": 0.4474124610424042,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260722_144311.json:81: "Pre-Ictal": 218,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260722_144311.json:110: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260722_144311.json:114: "Pre-Ictal": 0.7414796352386475,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260722_144311.json:124: "true_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260722_144311.json:130: "Pre-Ictal": 0.4208311140537262,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260722_144311.json:142: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260722_144311.json:146: "Pre-Ictal": 0.4917644262313843,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260726_183035.json:81: "Pre-Ictal": 218,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260726_183035.json:110: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260726_183035.json:114: "Pre-Ictal": 0.7414796352386475,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260726_183035.json:124: "true_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260726_183035.json:130: "Pre-Ictal": 0.4208311140537262,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260726_183035.json:142: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260726_183035.json:146: "Pre-Ictal": 0.4917644262313843,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260727_130659.json:81: "Pre-Ictal": 218,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260727_130659.json:110: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260727_130659.json:114: "Pre-Ictal": 0.7414796352386475,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260727_130659.json:124: "true_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260727_130659.json:130: "Pre-Ictal": 0.4208311140537262,
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260727_130659.json:142: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_int8_qdq_onnx_offline_demo_20260727_130659.json:146: "Pre-Ictal": 0.4917644262313843,
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_203527.json:52: "n_pre_ictal": 218,
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_203527.json:64: "predicted_class": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_203527.json:67: "Pre-Ictal": 0.7149093151092529,
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_203527.json:76: "intended_class": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_203527.json:79: "true_class": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_203527.json:84: "Pre-Ictal": 0.4253138303756714,
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_203527.json:98: "predicted_class": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_203527.json:101: "Pre-Ictal": 0.46497875452041626,
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_204514.json:52: "n_pre_ictal": 218,
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_204514.json:64: "predicted_class": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_204514.json:67: "Pre-Ictal": 0.7149093151092529,
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_204514.json:76: "intended_class": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_204514.json:79: "true_class": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_204514.json:84: "Pre-Ictal": 0.4253138303756714,
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_204514.json:98: "predicted_class": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_offline_demo_20260719_204514.json:101: "Pre-Ictal": 0.46497875452041626,
+reports\prototype_demo\aaaaaayf_onnx_offline_demo_20260722_114430.json:75: "Pre-Ictal": 218,
+reports\prototype_demo\aaaaaayf_onnx_offline_demo_20260722_114430.json:104: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_onnx_offline_demo_20260722_114430.json:108: "Pre-Ictal": 0.715172529220581,
+reports\prototype_demo\aaaaaayf_onnx_offline_demo_20260722_114430.json:118: "true_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_onnx_offline_demo_20260722_114430.json:124: "Pre-Ictal": 0.42336133122444153,
+reports\prototype_demo\aaaaaayf_onnx_offline_demo_20260722_114430.json:136: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_onnx_offline_demo_20260722_114430.json:140: "Pre-Ictal": 0.4474124610424042,
+reports\prototype_demo\aaaaaayf_pytorch_offline_demo_20260722_110431.json:29: "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_pytorch_offline_demo_20260722_110431.json:66: "Pre-Ictal": 218,
+reports\prototype_demo\aaaaaayf_pytorch_offline_demo_20260722_110431.json:92: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_pytorch_offline_demo_20260722_110431.json:96: "Pre-Ictal": 0.7151724696159363,
+reports\prototype_demo\aaaaaayf_pytorch_offline_demo_20260722_110431.json:106: "true_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_pytorch_offline_demo_20260722_110431.json:112: "Pre-Ictal": 0.4233614206314087,
+reports\prototype_demo\aaaaaayf_pytorch_offline_demo_20260722_110431.json:124: "predicted_class_name": "Pre-Ictal",
+reports\prototype_demo\aaaaaayf_pytorch_offline_demo_20260722_110431.json:128: "Pre-Ictal": 0.4474123418331146,
+reports\quantization\tcn_fp32_vs_int8_verification.json:63: "fp32_prediction_name": "Pre-Ictal",
+reports\quantization\tcn_fp32_vs_int8_verification.json:65: "int8_prediction_name": "Pre-Ictal",
+reports\quantization\tcn_fp32_vs_int8_verification.json:86: "true_class_name": "Pre-Ictal",
+reports\quantization\tcn_fp32_vs_int8_verification.json:113: "fp32_prediction_name": "Pre-Ictal",
+reports\quantization\tcn_fp32_vs_int8_verification.json:115: "int8_prediction_name": "Pre-Ictal",
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:100: "Pre-Ictal": 10,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:144: "Pre-Ictal": 10,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:188: "Pre-Ictal": 10,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:232: "Pre-Ictal": 0,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:276: "Pre-Ictal": 0,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:320: "Pre-Ictal": 10,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:364: "Pre-Ictal": 10,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:408: "Pre-Ictal": 0,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:452: "Pre-Ictal": 11,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:496: "Pre-Ictal": 10,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:540: "Pre-Ictal": 10,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:584: "Pre-Ictal": 0,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:628: "Pre-Ictal": 10,
+reports\quantization\tcn_int8_qdq_quantization_manifest.json:672: "Pre-Ictal": 10,
+reports\quantization\test_split\fp32_vs_int8_full_test_report.json:91: "Pre-Ictal": 218,
+reports\quantization\test_split\fp32_vs_int8_full_test_report.json:106: "Pre-Ictal": 251,
+reports\quantization\test_split\fp32_vs_int8_full_test_report.json:121: "Pre-Ictal": 712,
+reports\quantization\test_split\fp32_vs_int8_full_test_report.json:148: "Pre-Ictal": {
+reports\quantization\test_split\fp32_vs_int8_full_test_report.json:209: "Pre-Ictal": {
+reports\quantization\test_split\fp32_vs_int8_full_test_report.json:261: "pre_ictal_recall_change": 0.0059271803556308345,
+reports\quantization\test_split\fp32_vs_int8_full_test_summary.txt:15: FP32 pre-ictal recall          : 0.218459
+reports\quantization\test_split\fp32_vs_int8_full_test_summary.txt:16: INT8 pre-ictal recall          : 0.224386
+reports\verification\chbmit_20260719_191120\audit_chbmit_outputs.py:36: "n_pre_ictal",
+reports\verification\chbmit_20260719_191120\audit_chbmit_outputs.py:210: n_pre_ictal_array = read_small_array(archive, "n_pre_ictal")
+reports\verification\chbmit_20260719_191120\audit_chbmit_outputs.py:226: n_pre_ictal_meta = normalize_scalar(n_pre_ictal_array)
+reports\verification\chbmit_20260719_191120\audit_chbmit_outputs.py:300: n_pre_ictal_meta,
+reports\verification\chbmit_20260719_191120\audit_chbmit_outputs.py:311: n_pre_ictal_meta,
+reports\verification\chbmit_20260719_191120\audit_chbmit_outputs.py:346: "n_pre_ictal_metadata": n_pre_ictal_meta,
+reports\verification\chbmit_20260719_191120\audit_chbmit_outputs.py:430: "n_pre_ictal_metadata",
+src\deployment\int8_evaluate.py:141: "Pre-Ictal",
+src\deployment\int8_evaluate.py:787: P(Pre-Ictal) + P(Ictal) >= frozen threshold
+src\deployment\int8_evaluate.py:1422: pre_ictal_recall_change = (
+src\deployment\int8_evaluate.py:1424: "Pre-Ictal"
+src\deployment\int8_evaluate.py:1427: "Pre-Ictal"
+src\deployment\int8_evaluate.py:1460: "Pre-Ictal recall  : "
+src\deployment\int8_evaluate.py:1461: f"{fp32_metrics['class_metrics']['Pre-Ictal']['recall']:.6f}"
+src\deployment\int8_evaluate.py:1487: "Pre-Ictal recall  : "
+src\deployment\int8_evaluate.py:1488: f"{int8_metrics['class_metrics']['Pre-Ictal']['recall']:.6f}"
+src\deployment\int8_evaluate.py:1521: f"Pre-Ictal recall change  : "
+src\deployment\int8_evaluate.py:1522: f"{pre_ictal_recall_change:+.6f}"
+src\deployment\int8_evaluate.py:1595: "pre_ictal_recall": (
+src\deployment\int8_evaluate.py:1597: "Pre-Ictal"
+src\deployment\int8_evaluate.py:1634: "pre_ictal_recall": (
+src\deployment\int8_evaluate.py:1636: "Pre-Ictal"
+src\deployment\int8_evaluate.py:1746: "pre_ictal_recall_change": (
+src\deployment\int8_evaluate.py:1747: pre_ictal_recall_change
+src\deployment\int8_evaluate.py:1835: "FP32 pre-ictal recall          : "
+src\deployment\int8_evaluate.py:1836: f"{fp32_metrics['class_metrics']['Pre-Ictal']['recall']:.6f}"
+src\deployment\int8_evaluate.py:1839: "INT8 pre-ictal recall          : "
+src\deployment\int8_evaluate.py:1840: f"{int8_metrics['class_metrics']['Pre-Ictal']['recall']:.6f}"
+src\deployment\int8_quantize.py:530: "Pre-Ictal": int(
+src\deployment\int8_verify.py:63: "Pre-Ictal",
+src\deployment\onnx_export.py:19: output[1] = Pre-Ictal logit
+src\deployment\onnx_export.py:88: "Pre-Ictal",
+src\deployment\onnx_verify.py:64: "Pre-Ictal",
+src\deployment\onnx_verify.py:279: - index 2556: Pre-Ictal
+src\deployment\onnx_verify.py:551: #     P(Pre-Ictal) + P(Ictal)
+src\evaluation\data_contract_audit.py:10: reports/model_improvement/preictal_definition_evidence.txt
+src\evaluation\data_contract_audit.py:33: CLASS_NAMES = {0: "Interictal", 1: "Pre-Ictal", 2: "Ictal"}
+src\evaluation\data_contract_audit.py:70: preictal: int = 0
+src\evaluation\data_contract_audit.py:285: audit.preictal = int(counts[1])
+src\evaluation\data_contract_audit.py:401: def scan_preictal_evidence(root: Path, output_path: Path) -> int:
+src\evaluation\data_contract_audit.py:435: handle.write("Pre-Ictal Definition Evidence Scan\n")
+src\evaluation\data_contract_audit.py:440: "post-ictal exclusion, and boundary policy into the data-contract report.\n\n"
+src\evaluation\data_contract_audit.py:446: handle.write("NO MATCHES FOUND. The pre-ictal definition is not discoverable from scanned project text.\n")
+src\evaluation\data_contract_audit.py:458: "preictal",
+src\evaluation\data_contract_audit.py:461: "preictal_pct",
+src\evaluation\data_contract_audit.py:486: "preictal": audit.preictal,
+src\evaluation\data_contract_audit.py:489: "preictal_pct": audit.preictal / total * 100.0,
+src\evaluation\data_contract_audit.py:516: [[a.interictal, a.preictal, a.ictal] for a in audits], dtype=np.int64
+src\evaluation\data_contract_audit.py:541: handle.write(f"[INFO] Pre-ictal evidence matches written: {evidence_matches}\n")
+src\evaluation\data_contract_audit.py:552: f"Total windows: {int(totals.sum())} | Interictal={int(totals[0])} | Pre-Ictal={int(totals[1])} | Ictal={int(totals[2])}\n\n"
+src\evaluation\data_contract_audit.py:558: f"N={audit.windows}, labels={audit.interictal}/{audit.preictal}/{audit.ictal}, "
+src\evaluation\data_contract_audit.py:567: handle.write("Pre-ictal duration/horizon : NOT AUTOMATICALLY CONCLUDED\n")
+src\evaluation\data_contract_audit.py:569: handle.write("Post-ictal exclusion       : NOT AUTOMATICALLY CONCLUDED\n")
+src\evaluation\data_contract_audit.py:573: "Review reports/model_improvement/preictal_definition_evidence.txt and then replace these lines with evidence-backed values.\n\n"
+src\evaluation\data_contract_audit.py:628: evidence_path = report_dir / "preictal_definition_evidence.txt"
+src\evaluation\data_contract_audit.py:629: evidence_matches = scan_preictal_evidence(PROJECT_ROOT, evidence_path)
+src\evaluation\dataset_audit.py:18: CLASS_NAMES = ("interictal", "preictal", "ictal")
+src\evaluation\dataset_audit.py:56: "sampling_rate_hz", "interictal", "preictal", "ictal",
+src\evaluation\dataset_audit.py:57: "interictal_pct", "preictal_pct", "ictal_pct",
+src\evaluation\dataset_audit.py:69: "interictal", "preictal", "ictal",
+src\evaluation\dataset_audit.py:70: "interictal_pct", "preictal_pct", "ictal_pct",
+src\evaluation\dataset_audit.py:106: "preictal": int(counts[1]),
+src\evaluation\dataset_audit.py:109: "preictal_pct": counts[1] / total * 100.0,
+src\evaluation\dataset_audit.py:142: "preictal": int(split_counts[1]),
+src\evaluation\dataset_audit.py:145: "preictal_pct": split_counts[1] / windows * 100.0,
+src\evaluation\dataset_audit.py:159: f"{row['preictal_pct']:.2f}/{row['ictal_pct']:.2f}"
+src\evaluation\metrics.py:6: 1 = Pre-Ictal
+src\evaluation\metrics.py:30: CLASS_NAMES = ("Interictal", "Pre-Ictal", "Ictal")
+src\evaluation\metrics.py:45: "[Interictal, Pre-Ictal, Ictal]; "
+src\evaluation\metrics.py:143: Otherwise, treat Pre-Ictal and Ictal as alarm classes:
+src\evaluation\metrics.py:144: * alarm probability = P(Pre-Ictal) + P(Ictal)
+src\evaluation\metrics.py:295: "preictal_precision": float(per_precision[1]),
+src\evaluation\metrics.py:296: "preictal_recall": float(per_recall[1]),
+src\evaluation\metrics.py:297: "preictal_f1": float(per_f1[1]),
+src\evaluation\metrics.py:454: "train_preictal_count": int(train_class_counts[1]),
+src\evaluation\reporting.py:13: DEFAULT_CLASS_NAMES = ["Interictal", "Pre-Ictal", "Ictal"]
+src\evaluation\reporting.py:160: file.write("Alarm = Pre-Ictal or Ictal\n")
+src\preprocessing\loader.py:18: 8. Label each window: ictal / pre_ictal / interictal / unknown
+src\preprocessing\loader.py:32: pre_ictal    — window ends within [30, 120] s before seizure onset
+src\preprocessing\loader.py:71: PRE_ICTAL_MIN_S: float = 30.0          # seconds before onset
+src\preprocessing\loader.py:72: PRE_ICTAL_MAX_S: float = 120.0         # seconds before onset
+src\preprocessing\loader.py:169: 1 = Pre-ictal (Predictive warning horizon)
+src\preprocessing\loader.py:180: # 2. Pre-ictal — window ENDS in the pre-ictal zone before some seizure onset
+src\preprocessing\loader.py:183: if PRE_ICTAL_MIN_S <= gap <= PRE_ICTAL_MAX_S:
+src\preprocessing\loader.py:184: return 1  # Pre-ictal
+src\preprocessing\loader.py:265: """Add a SeizureEvent individual (with a PreIctalWindow) to the graph."""
+src\preprocessing\loader.py:275: # Pre-ictal window: clamp to [30, 120] s; use 60 s as default
+src\preprocessing\loader.py:276: piw_duration = min(PRE_ICTAL_MAX_S, max(PRE_ICTAL_MIN_S, 60.0))
+src\preprocessing\loader.py:282: g.add((piw_uri, RDF.type,             EEG.PreIctalWindow))
+src\preprocessing\loader.py:286: g.add((sz_uri, EEG.hasPreIctalWindow, piw_uri))
+src\preprocessing\loader.py:455: n_pre_ictal  = int((labels_arr == 1).sum())
+src\preprocessing\loader.py:459: "       %d epochs total — interictal=%d  pre_ictal=%d  ictal=%d",
+src\preprocessing\loader.py:462: n_pre_ictal,
+src\preprocessing\loader.py:472: f"pre_ictal={n_pre_ictal}, "
+src\preprocessing\loader.py:489: n_pre_ictal=n_pre_ictal,     # <-- Unified schema keys
+src\preprocessing\tusz_loader.py:50: def label_window(window_start_sample, window_size_samples, sfreq, seizure_intervals, pre_ictal_seconds=900.0):
+src\preprocessing\tusz_loader.py:54: 1 = Pre-ictal (Impending seizure horizon)
+src\preprocessing\tusz_loader.py:72: # 2. Check for Pre-Ictal overlap
+src\preprocessing\tusz_loader.py:73: pre_ictal_start = max(0.0, sz_start - pre_ictal_seconds)
+src\preprocessing\tusz_loader.py:76: if win_end_sec > pre_ictal_start and win_start_sec <= sz_start:
+src\preprocessing\tusz_loader.py:77: label = 1  # Assign Pre-ictal, but continue loop in case it overlaps an earlier Ictal zone
+src\preprocessing\tusz_loader.py:136: file_pre_ictal = 0
+src\preprocessing\tusz_loader.py:152: file_pre_ictal += 1
+src\preprocessing\tusz_loader.py:156: print(f"    Added {file_epochs} windows ({file_pre_ictal} pre-ictal, {file_ictal} ictal)")
+src\preprocessing\tusz_loader.py:187: n_pre_ictal  = int((all_labels == 1).sum())
+src\preprocessing\tusz_loader.py:204: n_pre_ictal  = n_pre_ictal,
+src\preprocessing\tusz_loader.py:210: print(f"✅ Classes: {n_interictal} Interictal | {n_pre_ictal} Pre-Ictal | {n_ictal} Ictal")
+src\training\train.py:44: CLASS_NAMES = ["Interictal", "Pre-Ictal", "Ictal"]
+src\validation\rdf_generator.py:79: n_pre_ictal  = int(data.get("n_pre_ictal", 0))
+tests\test_data_contract_audit.py:48: assert (result.interictal, result.preictal, result.ictal) == (4, 2, 3)
+tests\test_metrics_sanity.py:16: 1: "Pre-Ictal",
+tests\test_metrics_sanity.py:24: 1: "Pre-Ictal",
+tests\test_metrics_sanity.py:74: def test_preictal_and_ictal_swap():
+tests\test_metrics_sanity.py:167: assert metrics["preictal_recall"] == pytest.approx(0.5)
+tests\test_preprocessing.py:85: preictal_min=30.0,
+tests\test_preprocessing.py:86: preictal_max=120.0,
+tests\test_preprocessing.py:92: def test_label_preictal_window() -> None:
+tests\test_preprocessing.py:93: """A window in the 30-120 second pre-ictal horizon should be pre_ictal."""
+tests\test_preprocessing.py:101: preictal_min=30.0,
+tests\test_preprocessing.py:102: preictal_max=120.0,
+tests\test_preprocessing.py:105: assert label == "pre_ictal"
+tests\test_preprocessing.py:117: preictal_min=30.0,
+tests\test_preprocessing.py:118: preictal_max=120.0,
+tests\test_preprocessing.py:129: y = np.array(["ictal", "pre_ictal", "interictal"], dtype=object)
+tests\test_preprocessing.py:135: assert list(loaded["y"]) == ["ictal", "pre_ictal", "interictal"]
+tests\test_shacl.py:17: test_short_preictal_window_fails   – PreIctalWindow with 20 s duration rejected
+tests\test_shacl.py:18: test_long_preictal_window_fails    – PreIctalWindow with 130 s duration rejected
+tests\test_shacl.py:113: # ── PreIctalWindow ───────────────────────────
+tests\test_shacl.py:114: eeg:piw01 a eeg:PreIctalWindow ;
+tests\test_shacl.py:123: eeg:hasPreIctalWindow eeg:piw01 .
+tests\test_shacl.py:323: class TestPreIctalWindow:
+tests\test_shacl.py:324: """PreIctalWindow duration must be in [30, 120] seconds."""
+tests\test_shacl.py:326: def test_short_preictal_window_fails(self, tmp_path: Path) -> None:
+tests\test_shacl.py:345: eeg:piw07 a eeg:PreIctalWindow ;
+tests\test_shacl.py:353: eeg:hasPreIctalWindow eeg:piw07 .
+tests\test_shacl.py:366: def test_long_preictal_window_fails(self, tmp_path: Path) -> None:
+tests\test_shacl.py:385: eeg:piw08 a eeg:PreIctalWindow ;
+tests\test_shacl.py:393: eeg:hasPreIctalWindow eeg:piw08 .

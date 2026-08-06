@@ -1,0 +1,282 @@
+{
+  "status": "pass",
+  "created_at": "2026-07-22T14:34:19.904641+05:30",
+  "scientific_status": "Research prototype only; not clinically validated; not a medical device.",
+  "evaluation_scope": "Complete frozen held-out patient test split",
+  "threshold_selection": {
+    "source": "frozen validation-selected checkpoint value",
+    "threshold": 0.17000000000000004,
+    "policy": "specificity_constrained",
+    "test_tuning_performed": false
+  },
+  "patient_split": {
+    "training": [
+      "aaaaaajy",
+      "aaaaaarq",
+      "aaaaaazz",
+      "aaaaabep",
+      "aaaaaclc",
+      "aaaaacqc",
+      "aaaaacyi",
+      "aaaaadkb",
+      "aaaaaefp",
+      "aaaaaewf",
+      "aaaaaexe",
+      "aaaaafjv",
+      "aaaaagbf",
+      "aaaaagdr"
+    ],
+    "validation": [
+      "aaaaaaaq",
+      "aaaaaamc",
+      "aaaaadkj"
+    ],
+    "test": [
+      "aaaaaayf",
+      "aaaaabxe",
+      "aaaaafcf"
+    ]
+  },
+  "artifacts": {
+    "checkpoint": {
+      "path": "E:\\FYP\\eeg-seizure-mlops\\models\\frozen\\seizure_tcn_p20_baseline_review_0d6774d3.pt",
+      "sha256": "0d6774d36f2f040b4ce6ae5f9964fc30b004a7fe96b4a9fdfd401f733921a4e7"
+    },
+    "fp32": {
+      "path": "E:\\FYP\\eeg-seizure-mlops\\models\\onnx\\seizure_tcn_p20_baseline_fp32.onnx",
+      "sha256": "af31d5a99ac683786b70abc4eea774d9c3b9564af41856358280060cd2f77420",
+      "size_bytes": 367131,
+      "graph": {
+        "actual_opset": 18,
+        "total_nodes": 40,
+        "quantize_linear_nodes": 0,
+        "dequantize_linear_nodes": 0,
+        "inputs": [
+          "eeg_input"
+        ],
+        "outputs": [
+          "logits"
+        ]
+      }
+    },
+    "int8": {
+      "path": "E:\\FYP\\eeg-seizure-mlops\\models\\onnx\\seizure_tcn_p20_baseline_int8_qdq.onnx",
+      "sha256": "9fbac2f59b5acd0276036f8ab9ea65c6bc8555d71b5ba9c16124062889e43969",
+      "size_bytes": 283766,
+      "graph": {
+        "actual_opset": 18,
+        "total_nodes": 98,
+        "quantize_linear_nodes": 20,
+        "dequantize_linear_nodes": 38,
+        "inputs": [
+          "eeg_input"
+        ],
+        "outputs": [
+          "logits"
+        ]
+      }
+    }
+  },
+  "dataset": {
+    "total_test_windows": 9594,
+    "window_step_seconds": 2.0,
+    "patient_records": [
+      {
+        "patient_id": "aaaaaayf",
+        "npz_path": "E:\\FYP\\eeg-seizure-mlops\\data\\processed\\tusz\\aaaaaayf\\aaaaaayf.npz",
+        "window_count": 3775,
+        "sampling_rate_hz": 128.0,
+        "class_counts": {
+          "Interictal": 3270,
+          "Pre-Ictal": 218,
+          "Ictal": 287
+        },
+        "fp32_latency_ms": 5305.812700244132,
+        "int8_latency_ms": 3935.630200081505,
+        "fp32_batch_count": 59,
+        "int8_batch_count": 59
+      },
+      {
+        "patient_id": "aaaaabxe",
+        "npz_path": "E:\\FYP\\eeg-seizure-mlops\\data\\processed\\tusz\\aaaaabxe\\aaaaabxe.npz",
+        "window_count": 2610,
+        "sampling_rate_hz": 128.0,
+        "class_counts": {
+          "Interictal": 2345,
+          "Pre-Ictal": 251,
+          "Ictal": 14
+        },
+        "fp32_latency_ms": 3975.872300157789,
+        "int8_latency_ms": 2516.73400006257,
+        "fp32_batch_count": 41,
+        "int8_batch_count": 41
+      },
+      {
+        "patient_id": "aaaaafcf",
+        "npz_path": "E:\\FYP\\eeg-seizure-mlops\\data\\processed\\tusz\\aaaaafcf\\aaaaafcf.npz",
+        "window_count": 3209,
+        "sampling_rate_hz": 128.0,
+        "class_counts": {
+          "Interictal": 2350,
+          "Pre-Ictal": 712,
+          "Ictal": 147
+        },
+        "fp32_latency_ms": 4643.5892000445165,
+        "int8_latency_ms": 3197.5194995757192,
+        "fp32_batch_count": 51,
+        "int8_batch_count": 51
+      }
+    ]
+  },
+  "fp32_metrics": {
+    "window_count": 9594,
+    "accuracy": 0.38388576193454244,
+    "balanced_accuracy": 0.28145947114106756,
+    "macro_precision": 0.30385639559819994,
+    "macro_recall": 0.28145947114106756,
+    "macro_specificity": 0.619990289556975,
+    "macro_f1": 0.24696075437553425,
+    "macro_auc_ovr": 0.4388618993906325,
+    "class_metrics": {
+      "Interictal": {
+        "precision": 0.7849234393404004,
+        "recall": 0.41833019460138104,
+        "specificity": 0.43953345610804173,
+        "f1": 0.5457821457821458,
+        "support": 7965
+      },
+      "Pre-Ictal": {
+        "precision": 0.06913183279742766,
+        "recall": 0.21845893310753597,
+        "specificity": 0.5870676334244621,
+        "f1": 0.10502747811927539,
+        "support": 1181
+      },
+      "Ictal": {
+        "precision": 0.0575139146567718,
+        "recall": 0.20758928571428573,
+        "specificity": 0.8333697791384211,
+        "f1": 0.09007263922518159,
+        "support": 448
+      }
+    },
+    "confusion_matrix": [
+      [
+        3332,
+        3321,
+        1312
+      ],
+      [
+        711,
+        258,
+        212
+      ],
+      [
+        202,
+        153,
+        93
+      ]
+    ],
+    "alarm": {
+      "threshold": 0.17000000000000004,
+      "true_positives": 1158,
+      "true_negatives": 2057,
+      "false_positives": 5908,
+      "false_negatives": 471,
+      "sensitivity": 0.7108655616942909,
+      "specificity": 0.25825486503452605,
+      "evaluated_duration_hours": 5.33,
+      "false_alarms_per_hour": 1108.4427767354596
+    }
+  },
+  "int8_metrics": {
+    "window_count": 9594,
+    "accuracy": 0.38628309360016677,
+    "balanced_accuracy": 0.28129600263736504,
+    "macro_precision": 0.3044699287549086,
+    "macro_recall": 0.28129600263736504,
+    "macro_specificity": 0.6212981496243618,
+    "macro_f1": 0.2478209185605648,
+    "macro_auc_ovr": 0.44249565773653216,
+    "class_metrics": {
+      "Interictal": {
+        "precision": 0.7864852182074143,
+        "recall": 0.42084118016321403,
+        "specificity": 0.44137507673419274,
+        "f1": 0.5482947575038849,
+        "support": 7965
+      },
+      "Pre-Ictal": {
+        "precision": 0.07066666666666667,
+        "recall": 0.2243861134631668,
+        "specificity": 0.585760133127303,
+        "f1": 0.10748326911377003,
+        "support": 1181
+      },
+      "Ictal": {
+        "precision": 0.05625790139064475,
+        "recall": 0.19866071428571427,
+        "specificity": 0.8367592390115898,
+        "f1": 0.08768472906403942,
+        "support": 448
+      }
+    },
+    "confusion_matrix": [
+      [
+        3352,
+        3327,
+        1286
+      ],
+      [
+        709,
+        265,
+        207
+      ],
+      [
+        201,
+        158,
+        89
+      ]
+    ],
+    "alarm": {
+      "threshold": 0.17000000000000004,
+      "true_positives": 1163,
+      "true_negatives": 2039,
+      "false_positives": 5926,
+      "false_negatives": 466,
+      "sensitivity": 0.7139349294045426,
+      "specificity": 0.25599497802887633,
+      "evaluated_duration_hours": 5.33,
+      "false_alarms_per_hour": 1111.8198874296436
+    }
+  },
+  "comparison": {
+    "prediction_disagreements": 127,
+    "prediction_disagreement_rate": 0.013237440066708359,
+    "alarm_disagreements": 89,
+    "alarm_disagreement_rate": 0.00927663122785074,
+    "maximum_probability_difference": 0.17405115067958832,
+    "mean_probability_difference": 0.010975433513522148,
+    "macro_f1_change": 0.000860164185030543,
+    "pre_ictal_recall_change": 0.0059271803556308345,
+    "ictal_recall_change": -0.008928571428571452,
+    "size_reduction_percent": 22.70715357733343,
+    "fp32_total_inference_ms": 13925.274200446438,
+    "int8_total_inference_ms": 9649.883699719794,
+    "fp32_mean_window_latency_ms": 1.4514565562274795,
+    "int8_mean_window_latency_ms": 1.005824859257848,
+    "latency_change_percent": -30.702379279465656
+  },
+  "engineering_decision_support": {
+    "maximum_acceptable_absolute_macro_f1_drop": 0.02,
+    "macro_f1_retained_by_criterion": true,
+    "note": "This threshold is an engineering decision-support criterion for this experiment, not a universal scientific standard."
+  },
+  "versions": {
+    "python": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+    "numpy": "2.4.6",
+    "onnx": "1.22.0",
+    "onnxruntime": "1.27.0",
+    "pytorch": "2.13.0+cpu"
+  }
+}

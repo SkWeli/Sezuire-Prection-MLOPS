@@ -60,12 +60,26 @@ PYTORCH_CHECKPOINT_PATH = (
     / "seizure_tcn_p20_baseline_review_0d6774d3.pt"
 )
 
-ONNX_MODEL_PATH = (
+# ---------------------------------------------------------------------------
+# Deployment model artifacts
+# ---------------------------------------------------------------------------
+
+FP32_ONNX_MODEL_PATH = (
     PROJECT_ROOT
     / "models"
     / "onnx"
     / "seizure_tcn_p20_baseline_fp32.onnx"
 )
+
+INT8_ONNX_MODEL_PATH = (
+    PROJECT_ROOT
+    / "models"
+    / "onnx"
+    / "seizure_tcn_p20_baseline_int8_qdq.onnx"
+)
+
+# Backward-compatible alias used by any older FP32 demo code.
+ONNX_MODEL_PATH = FP32_ONNX_MODEL_PATH
 
 REPORT_DIRECTORY = (
     PROJECT_ROOT
@@ -83,10 +97,18 @@ EXPECTED_CHECKPOINT_SHA256 = (
     "b004a7fe96b4a9fdfd401f733921a4e7"
 )
 
-EXPECTED_ONNX_SHA256 = (
+EXPECTED_FP32_ONNX_SHA256 = (
     "af31d5a99ac683786b70abc4eea774d9"
     "c3b9564af41856358280060cd2f77420"
 )
+
+EXPECTED_INT8_ONNX_SHA256 = (
+    "9fbac2f59b5acd0276036f8ab9ea65c6"
+    "bc8555d71b5ba9c16124062889e43969"
+)
+
+# Backward-compatible alias for the original FP32 demonstration.
+EXPECTED_ONNX_SHA256 = EXPECTED_FP32_ONNX_SHA256
 
 
 # ---------------------------------------------------------------------------
@@ -101,6 +123,12 @@ EXPECTED_TIMEPOINTS = 512
 EXPECTED_CLASSES = 3
 
 EXPECTED_ONNX_OPSET = 18
+
+ONNX_INPUT_NAME = "eeg_input"
+ONNX_OUTPUT_NAME = "logits"
+
+ALARM_THRESHOLD = 0.17
+ALARM_THRESHOLD_POLICY = "specificity_constrained"
 
 CLASS_NAMES = [
     "Interictal",

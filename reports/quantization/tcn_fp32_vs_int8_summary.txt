@@ -1,0 +1,16 @@
+FP32 vs INT8 ONNX Verification Summary
+========================================================================
+
+Status                    : PASS
+Predictions matching      : 3/3
+Alarm decisions matching  : 3/3
+Maximum logit difference  : 0.15658939
+Maximum probability diff  : 0.04435197
+FP32 size KiB             : 358.53
+INT8 size KiB             : 277.12
+Size reduction percent    : 22.71
+FP32 mean latency ms      : 1.933986
+INT8 mean latency ms      : 1.350523
+Latency change percent    : -30.17
+
+Full test-split evaluation is required before deciding whether the INT8 model should replace FP32.
