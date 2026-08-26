@@ -1,0 +1,28 @@
+@prefix eeg: <http://example.org/eeg-epilepsy#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+
+# This patient is invalid because the recording session
+# has only 2 channels instead of the required number.
+eeg:patient_bad02 a eeg:Patient ;
+    eeg:subjectID "bad02" ;
+    eeg:hasSession eeg:session_bad02 .
+
+eeg:session_bad02 a eeg:RecordingSession ;
+    eeg:sessionID "bad02_session" ;
+    eeg:hasSamplingRate eeg:sampling_bad02 ;
+    eeg:hasChannel eeg:channel_bad02_1 ;
+    eeg:hasChannel eeg:channel_bad02_2 ;
+    eeg:hasPreprocessingStep eeg:step_bad02_1 .
+
+eeg:sampling_bad02 a eeg:SamplingRate ;
+    eeg:frequencyHz "128.0"^^xsd:float .
+
+eeg:step_bad02_1 a eeg:PreprocessingStep ;
+    eeg:filterType "bandpass_filter" ;
+    eeg:stepOrder "1"^^xsd:integer .
+
+eeg:channel_bad02_1 a eeg:EEGChannel ;
+    eeg:channelLabel "FP1-F7" .
+
+eeg:channel_bad02_2 a eeg:EEGChannel ;
+    eeg:channelLabel "F7-T3" .

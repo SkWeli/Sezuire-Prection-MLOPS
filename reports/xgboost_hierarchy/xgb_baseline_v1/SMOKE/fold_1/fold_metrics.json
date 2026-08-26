@@ -1,0 +1,285 @@
+{
+  "experiment": "hierarchical_xgboost_baseline_no_smote",
+  "smoke": true,
+  "outer_fold": 1,
+  "seed": 42,
+  "xgboost_params": {
+    "n_estimators": 300,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "gamma": 0.0,
+    "objective": "binary:logistic",
+    "eval_metric": "logloss",
+    "tree_method": "hist",
+    "random_state": 42,
+    "n_jobs": -1,
+    "smoke_override": true
+  },
+  "outer_train_patients": [
+    "aaaaaaaq",
+    "aaaaaajy",
+    "aaaaaamc",
+    "aaaaaarq",
+    "aaaaaazz",
+    "aaaaabep",
+    "aaaaabxe",
+    "aaaaacyi",
+    "aaaaadkj",
+    "aaaaaefp",
+    "aaaaaewf",
+    "aaaaafcf",
+    "aaaaafjv",
+    "aaaaagdr",
+    "aaaaahie",
+    "aaaaahlk",
+    "aaaaahln",
+    "aaaaahsi",
+    "aaaaahsn",
+    "aaaaaict",
+    "aaaaaiih",
+    "aaaaaiij",
+    "aaaaaijh",
+    "aaaaaiup",
+    "aaaaaizb",
+    "aaaaajdj",
+    "aaaaajru",
+    "aaaaakcy",
+    "aaaaakfk",
+    "aaaaakis",
+    "aaaaalhp",
+    "aaaaamck"
+  ],
+  "inner_train_patients": [
+    "aaaaaaaq",
+    "aaaaaajy",
+    "aaaaaamc",
+    "aaaaaazz",
+    "aaaaabep",
+    "aaaaabxe",
+    "aaaaacyi",
+    "aaaaadkj",
+    "aaaaaefp",
+    "aaaaafcf",
+    "aaaaafjv",
+    "aaaaagdr",
+    "aaaaahie",
+    "aaaaahln",
+    "aaaaahsi",
+    "aaaaahsn",
+    "aaaaaiih",
+    "aaaaaiij",
+    "aaaaajdj",
+    "aaaaajru",
+    "aaaaakcy",
+    "aaaaakis",
+    "aaaaalhp",
+    "aaaaamck"
+  ],
+  "inner_validation_patients": [
+    "aaaaaarq",
+    "aaaaaewf",
+    "aaaaahlk",
+    "aaaaaict",
+    "aaaaaijh",
+    "aaaaaiup",
+    "aaaaaizb",
+    "aaaaakfk"
+  ],
+  "outer_held_out_patients": [
+    "aaaaaayf",
+    "aaaaaclc",
+    "aaaaacqc",
+    "aaaaadkb",
+    "aaaaaexe",
+    "aaaaagbf",
+    "aaaaaghb",
+    "aaaaagus"
+  ],
+  "stage1": {
+    "selection_policy": "inner validation threshold maximizing balanced accuracy subject to specificity >= 0.80",
+    "threshold": 0.54,
+    "specificity_constraint_fallback": false,
+    "inner_validation": {
+      "threshold": 0.54,
+      "accuracy": 0.5262220463091233,
+      "balanced_accuracy": 0.5398325794697827,
+      "precision": 0.6113499570077386,
+      "recall_sensitivity": 0.2679984922728986,
+      "specificity": 0.8116666666666666,
+      "f1": 0.37264150943396224,
+      "roc_auc": 0.6094219594170122,
+      "pr_auc": 0.6055383147066534,
+      "n": 5053,
+      "positive_count": 2653,
+      "negative_count": 2400
+    },
+    "outer_heldout": {
+      "threshold": 0.54,
+      "accuracy": 0.4041685545990032,
+      "balanced_accuracy": 0.41198930301012143,
+      "precision": 0.35631229235880396,
+      "recall_sensitivity": 0.18782837127845883,
+      "specificity": 0.636150234741784,
+      "f1": 0.2459862385321101,
+      "roc_auc": 0.38129815084317936,
+      "pr_auc": 0.43360867572102324,
+      "n": 4414,
+      "positive_count": 2284,
+      "negative_count": 2130
+    }
+  },
+  "stage2": {
+    "selection_policy": "inner validation threshold maximizing balanced accuracy, tie-break Ictal recall then macro F1",
+    "threshold": 0.35000000000000003,
+    "inner_validation": {
+      "threshold": 0.35000000000000003,
+      "balanced_accuracy": 0.6338055528196374,
+      "macro_f1": 0.6149323333191463,
+      "pre_ictal_recall": 0.6709401709401709,
+      "ictal_recall": 0.5966709346991037,
+      "pre_ictal_f1": 0.7295962823119373,
+      "ictal_f1": 0.5002683843263553,
+      "roc_auc": 0.6793924483185046,
+      "pr_auc": 0.46122703295780654
+    },
+    "outer_heldout_true_seizure_related": {
+      "threshold": 0.35000000000000003,
+      "balanced_accuracy": 0.5711537897764474,
+      "macro_f1": 0.5590875803005984,
+      "roc_auc": 0.5797214630761864,
+      "pr_auc": 0.5116869079303047,
+      "pre_ictal_recall": 0.8709449929478138,
+      "ictal_recall": 0.27136258660508084,
+      "pre_ictal_f1": 0.7521315468940317,
+      "ictal_f1": 0.3660436137071651,
+      "n_true_seizure_related": 2284
+    }
+  },
+  "end_to_end_outer_heldout": {
+    "accuracy": 0.36859990937924786,
+    "balanced_accuracy": 0.29292166114003665,
+    "macro_precision": 0.29096642925088534,
+    "macro_recall": 0.29292166114003665,
+    "macro_specificity": 0.6324369961540457,
+    "macro_f1": 0.2741170656242576,
+    "macro_auc_ovr": 0.45933078094112983,
+    "confusion_matrix": [
+      [
+        1355,
+        403,
+        372
+      ],
+      [
+        1235,
+        159,
+        24
+      ],
+      [
+        620,
+        133,
+        113
+      ]
+    ],
+    "per_class": {
+      "interictal": {
+        "precision": 0.4221183800623053,
+        "recall": 0.636150234741784,
+        "specificity": 0.18782837127845883,
+        "f1": 0.5074906367041199,
+        "support": 2130
+      },
+      "pre_ictal": {
+        "precision": 0.22877697841726619,
+        "recall": 0.11212976022566996,
+        "specificity": 0.8210947930574098,
+        "f1": 0.15049692380501656,
+        "support": 1418
+      },
+      "ictal": {
+        "precision": 0.2220039292730845,
+        "recall": 0.13048498845265588,
+        "specificity": 0.8883878241262683,
+        "f1": 0.16436363636363635,
+        "support": 866
+      }
+    }
+  },
+  "patient_level_outer_heldout": [
+    {
+      "patient_id": "aaaaaayf",
+      "n_windows": 805,
+      "balanced_accuracy_present_classes": 0.31048915456389165,
+      "macro_f1_present_classes": 0.2995463222311531,
+      "interictal_recall": 0.5433333333333333,
+      "pre_ictal_recall": 0.1651376146788991,
+      "ictal_recall": 0.2229965156794425
+    },
+    {
+      "patient_id": "aaaaaclc",
+      "n_windows": 300,
+      "balanced_accuracy_present_classes": 0.7133333333333334,
+      "macro_f1_present_classes": 0.8326848249027238,
+      "interictal_recall": 0.7133333333333334,
+      "pre_ictal_recall": null,
+      "ictal_recall": null
+    },
+    {
+      "patient_id": "aaaaacqc",
+      "n_windows": 788,
+      "balanced_accuracy_present_classes": 0.22754137115839243,
+      "macro_f1_present_classes": 0.1893110340315309,
+      "interictal_recall": 0.5333333333333333,
+      "pre_ictal_recall": 0.13333333333333333,
+      "ictal_recall": 0.015957446808510637
+    },
+    {
+      "patient_id": "aaaaadkb",
+      "n_windows": 300,
+      "balanced_accuracy_present_classes": 0.43333333333333335,
+      "macro_f1_present_classes": 0.6046511627906976,
+      "interictal_recall": 0.43333333333333335,
+      "pre_ictal_recall": null,
+      "ictal_recall": null
+    },
+    {
+      "patient_id": "aaaaaexe",
+      "n_windows": 347,
+      "balanced_accuracy_present_classes": 0.3966013071895425,
+      "macro_f1_present_classes": 0.24497027025762655,
+      "interictal_recall": 0.8,
+      "pre_ictal_recall": 0.21333333333333335,
+      "ictal_recall": 0.17647058823529413
+    },
+    {
+      "patient_id": "aaaaagbf",
+      "n_windows": 762,
+      "balanced_accuracy_present_classes": 0.34958847736625515,
+      "macro_f1_present_classes": 0.3022688756860079,
+      "interictal_recall": 0.72,
+      "pre_ictal_recall": 0.06333333333333334,
+      "ictal_recall": 0.2654320987654321
+    },
+    {
+      "patient_id": "aaaaaghb",
+      "n_windows": 812,
+      "balanced_accuracy_present_classes": 0.3333333333333333,
+      "macro_f1_present_classes": 0.1801801801801802,
+      "interictal_recall": 1.0,
+      "pre_ictal_recall": 0.0,
+      "ictal_recall": 0.0
+    },
+    {
+      "patient_id": "aaaaagus",
+      "n_windows": 300,
+      "balanced_accuracy_present_classes": 0.49333333333333335,
+      "macro_f1_present_classes": 0.6607142857142857,
+      "interictal_recall": 0.49333333333333335,
+      "pre_ictal_recall": null,
+      "ictal_recall": null
+    }
+  ]
+}

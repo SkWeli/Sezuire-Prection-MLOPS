@@ -1,0 +1,545 @@
+{
+  "method": "StratifiedGroupKFold",
+  "n_splits": 5,
+  "seed": 42,
+  "grouping_rule": "Patient IDs are mutually exclusive between training and held-out data.",
+  "patient_stats": {
+    "aaaaaaaq": {
+      "windows": 4568,
+      "interictal": 4111,
+      "pre_ictal": 451,
+      "ictal": 6
+    },
+    "aaaaaajy": {
+      "windows": 2329,
+      "interictal": 268,
+      "pre_ictal": 692,
+      "ictal": 1369
+    },
+    "aaaaaamc": {
+      "windows": 2427,
+      "interictal": 2427,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaaarq": {
+      "windows": 10431,
+      "interictal": 9511,
+      "pre_ictal": 778,
+      "ictal": 142
+    },
+    "aaaaaayf": {
+      "windows": 3775,
+      "interictal": 3270,
+      "pre_ictal": 218,
+      "ictal": 287
+    },
+    "aaaaaazz": {
+      "windows": 1238,
+      "interictal": 667,
+      "pre_ictal": 483,
+      "ictal": 88
+    },
+    "aaaaabep": {
+      "windows": 635,
+      "interictal": 635,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaabxe": {
+      "windows": 2610,
+      "interictal": 2345,
+      "pre_ictal": 251,
+      "ictal": 14
+    },
+    "aaaaaclc": {
+      "windows": 610,
+      "interictal": 610,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaacqc": {
+      "windows": 2996,
+      "interictal": 1890,
+      "pre_ictal": 918,
+      "ictal": 188
+    },
+    "aaaaacyi": {
+      "windows": 728,
+      "interictal": 142,
+      "pre_ictal": 544,
+      "ictal": 42
+    },
+    "aaaaadkb": {
+      "windows": 10481,
+      "interictal": 10481,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaadkj": {
+      "windows": 2178,
+      "interictal": 768,
+      "pre_ictal": 811,
+      "ictal": 599
+    },
+    "aaaaaefp": {
+      "windows": 1216,
+      "interictal": 924,
+      "pre_ictal": 283,
+      "ictal": 9
+    },
+    "aaaaaewf": {
+      "windows": 2198,
+      "interictal": 1203,
+      "pre_ictal": 975,
+      "ictal": 20
+    },
+    "aaaaaexe": {
+      "windows": 711,
+      "interictal": 30,
+      "pre_ictal": 664,
+      "ictal": 17
+    },
+    "aaaaafcf": {
+      "windows": 3209,
+      "interictal": 2350,
+      "pre_ictal": 712,
+      "ictal": 147
+    },
+    "aaaaafjv": {
+      "windows": 807,
+      "interictal": 807,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaagbf": {
+      "windows": 11041,
+      "interictal": 10061,
+      "pre_ictal": 818,
+      "ictal": 162
+    },
+    "aaaaagdr": {
+      "windows": 1299,
+      "interictal": 721,
+      "pre_ictal": 419,
+      "ictal": 159
+    },
+    "aaaaaghb": {
+      "windows": 3180,
+      "interictal": 2301,
+      "pre_ictal": 667,
+      "ictal": 212
+    },
+    "aaaaagus": {
+      "windows": 2283,
+      "interictal": 2283,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaahie": {
+      "windows": 203033,
+      "interictal": 184639,
+      "pre_ictal": 16671,
+      "ictal": 1723
+    },
+    "aaaaahlk": {
+      "windows": 11184,
+      "interictal": 10437,
+      "pre_ictal": 627,
+      "ictal": 120
+    },
+    "aaaaahln": {
+      "windows": 1905,
+      "interictal": 1905,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaahsi": {
+      "windows": 1699,
+      "interictal": 1406,
+      "pre_ictal": 98,
+      "ictal": 195
+    },
+    "aaaaahsn": {
+      "windows": 603,
+      "interictal": 603,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaaict": {
+      "windows": 7405,
+      "interictal": 6820,
+      "pre_ictal": 568,
+      "ictal": 17
+    },
+    "aaaaaiih": {
+      "windows": 3354,
+      "interictal": 2784,
+      "pre_ictal": 470,
+      "ictal": 100
+    },
+    "aaaaaiij": {
+      "windows": 3015,
+      "interictal": 3015,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaaijh": {
+      "windows": 720,
+      "interictal": 573,
+      "pre_ictal": 120,
+      "ictal": 27
+    },
+    "aaaaaiup": {
+      "windows": 4018,
+      "interictal": 3100,
+      "pre_ictal": 783,
+      "ictal": 135
+    },
+    "aaaaaizb": {
+      "windows": 5237,
+      "interictal": 5088,
+      "pre_ictal": 129,
+      "ictal": 20
+    },
+    "aaaaajdj": {
+      "windows": 4056,
+      "interictal": 3814,
+      "pre_ictal": 222,
+      "ictal": 20
+    },
+    "aaaaajru": {
+      "windows": 13017,
+      "interictal": 6137,
+      "pre_ictal": 4597,
+      "ictal": 2283
+    },
+    "aaaaakcy": {
+      "windows": 14128,
+      "interictal": 14128,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaakfk": {
+      "windows": 1384,
+      "interictal": 692,
+      "pre_ictal": 123,
+      "ictal": 569
+    },
+    "aaaaakis": {
+      "windows": 1219,
+      "interictal": 1219,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaalhp": {
+      "windows": 6655,
+      "interictal": 6655,
+      "pre_ictal": 0,
+      "ictal": 0
+    },
+    "aaaaamck": {
+      "windows": 1980,
+      "interictal": 1453,
+      "pre_ictal": 482,
+      "ictal": 45
+    }
+  },
+  "folds": [
+    {
+      "fold": 1,
+      "train_patients": [
+        "aaaaaaaq",
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaabxe",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaacyi",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaefp",
+        "aaaaaewf",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagbf",
+        "aaaaagdr",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahlk",
+        "aaaaahln",
+        "aaaaahsi",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaalhp",
+        "aaaaamck"
+      ],
+      "held_out_patients": [
+        "aaaaahie"
+      ],
+      "train_windows": 152529,
+      "held_out_windows": 203033,
+      "train_counts": {
+        "interictal": 127634,
+        "pre_ictal": 17903,
+        "ictal": 6992
+      },
+      "held_out_counts": {
+        "interictal": 184639,
+        "pre_ictal": 16671,
+        "ictal": 1723
+      }
+    },
+    {
+      "fold": 2,
+      "train_patients": [
+        "aaaaaaaq",
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabxe",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaacyi",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaefp",
+        "aaaaaewf",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaagbf",
+        "aaaaagdr",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahlk",
+        "aaaaahln",
+        "aaaaahsi",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj",
+        "aaaaakfk",
+        "aaaaalhp",
+        "aaaaamck"
+      ],
+      "held_out_patients": [
+        "aaaaabep",
+        "aaaaafjv",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakis"
+      ],
+      "train_windows": 317748,
+      "held_out_windows": 37814,
+      "train_counts": {
+        "interictal": 281924,
+        "pre_ictal": 29409,
+        "ictal": 6415
+      },
+      "held_out_counts": {
+        "interictal": 30349,
+        "pre_ictal": 5165,
+        "ictal": 2300
+      }
+    },
+    {
+      "fold": 3,
+      "train_patients": [
+        "aaaaaaaq",
+        "aaaaaajy",
+        "aaaaabep",
+        "aaaaaclc",
+        "aaaaacyi",
+        "aaaaaefp",
+        "aaaaaewf",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagbf",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahlk",
+        "aaaaahln",
+        "aaaaahsi",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaalhp"
+      ],
+      "held_out_patients": [
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabxe",
+        "aaaaacqc",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaexe",
+        "aaaaagdr",
+        "aaaaaijh",
+        "aaaaamck"
+      ],
+      "train_windows": 314716,
+      "held_out_windows": 40846,
+      "train_counts": {
+        "interictal": 278137,
+        "pre_ictal": 29430,
+        "ictal": 7149
+      },
+      "held_out_counts": {
+        "interictal": 34136,
+        "pre_ictal": 5144,
+        "ictal": 1566
+      }
+    },
+    {
+      "fold": 4,
+      "train_patients": [
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaabxe",
+        "aaaaacqc",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaewf",
+        "aaaaaexe",
+        "aaaaafjv",
+        "aaaaagbf",
+        "aaaaagdr",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahln",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaaijh",
+        "aaaaaiup",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakis",
+        "aaaaalhp",
+        "aaaaamck"
+      ],
+      "held_out_patients": [
+        "aaaaaaaq",
+        "aaaaaclc",
+        "aaaaacyi",
+        "aaaaaefp",
+        "aaaaafcf",
+        "aaaaahlk",
+        "aaaaahsi",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaizb",
+        "aaaaakfk"
+      ],
+      "train_windows": 319358,
+      "held_out_windows": 36204,
+      "train_counts": {
+        "interictal": 280714,
+        "pre_ictal": 31137,
+        "ictal": 7507
+      },
+      "held_out_counts": {
+        "interictal": 31559,
+        "pre_ictal": 3437,
+        "ictal": 1208
+      }
+    },
+    {
+      "fold": 5,
+      "train_patients": [
+        "aaaaaaaq",
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaabxe",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaacyi",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaefp",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagdr",
+        "aaaaahie",
+        "aaaaahlk",
+        "aaaaahsi",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaaizb",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaamck"
+      ],
+      "held_out_patients": [
+        "aaaaaajy",
+        "aaaaaewf",
+        "aaaaagbf",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahln",
+        "aaaaaiup",
+        "aaaaajdj",
+        "aaaaalhp"
+      ],
+      "train_windows": 317897,
+      "held_out_windows": 37665,
+      "train_counts": {
+        "interictal": 280683,
+        "pre_ictal": 30417,
+        "ictal": 6797
+      },
+      "held_out_counts": {
+        "interictal": 31590,
+        "pre_ictal": 4157,
+        "ictal": 1918
+      }
+    }
+  ]
+}

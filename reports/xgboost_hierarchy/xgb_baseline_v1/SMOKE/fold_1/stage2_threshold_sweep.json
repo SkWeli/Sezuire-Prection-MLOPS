@@ -1,0 +1,893 @@
+[
+  {
+    "threshold": 0.01,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.02,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.03,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.04,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.05,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.060000000000000005,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.06999999999999999,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.08,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.09,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.09999999999999999,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.11,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.12,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.13,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.14,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.15000000000000002,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.16,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.17,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.18000000000000002,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.19,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.22743156668608036,
+    "pre_ictal_recall": 0.0,
+    "ictal_recall": 1.0,
+    "pre_ictal_f1": 0.0,
+    "ictal_f1": 0.4548631333721607
+  },
+  {
+    "threshold": 0.2,
+    "balanced_accuracy": 0.548635734375171,
+    "macro_f1": 0.35622345908060193,
+    "pre_ictal_recall": 0.13568376068376067,
+    "ictal_recall": 0.9615877080665813,
+    "pre_ictal_f1": 0.23562152133580705,
+    "ictal_f1": 0.4768253968253968
+  },
+  {
+    "threshold": 0.21000000000000002,
+    "balanced_accuracy": 0.5502424023550784,
+    "macro_f1": 0.36339521962483706,
+    "pre_ictal_recall": 0.1452991452991453,
+    "ictal_recall": 0.9551856594110115,
+    "pre_ictal_f1": 0.24965580541532814,
+    "ictal_f1": 0.477134633834346
+  },
+  {
+    "threshold": 0.22,
+    "balanced_accuracy": 0.5495002845354958,
+    "macro_f1": 0.367926593689633,
+    "pre_ictal_recall": 0.1527777777777778,
+    "ictal_recall": 0.9462227912932138,
+    "pre_ictal_f1": 0.26,
+    "ictal_f1": 0.47585318737926596
+  },
+  {
+    "threshold": 0.23,
+    "balanced_accuracy": 0.5487622705932566,
+    "macro_f1": 0.37637237801958123,
+    "pre_ictal_recall": 0.16666666666666666,
+    "ictal_recall": 0.9308578745198464,
+    "pre_ictal_f1": 0.27882037533512066,
+    "ictal_f1": 0.47392438070404175
+  },
+  {
+    "threshold": 0.24000000000000002,
+    "balanced_accuracy": 0.5555028891296497,
+    "macro_f1": 0.3970287169664668,
+    "pre_ictal_recall": 0.1955128205128205,
+    "ictal_recall": 0.9154929577464789,
+    "pre_ictal_f1": 0.3177083333333333,
+    "ictal_f1": 0.4763491005996003
+  },
+  {
+    "threshold": 0.25,
+    "balanced_accuracy": 0.5765137151580814,
+    "macro_f1": 0.44504949985769005,
+    "pre_ictal_recall": 0.2644230769230769,
+    "ictal_recall": 0.8886043533930857,
+    "pre_ictal_f1": 0.4034229828850856,
+    "ictal_f1": 0.48667601683029454
+  },
+  {
+    "threshold": 0.26,
+    "balanced_accuracy": 0.5991230014117338,
+    "macro_f1": 0.48824182717682885,
+    "pre_ictal_recall": 0.3301282051282051,
+    "ictal_recall": 0.8681177976952625,
+    "pre_ictal_f1": 0.4766679521789433,
+    "ictal_f1": 0.4998157021747143
+  },
+  {
+    "threshold": 0.27,
+    "balanced_accuracy": 0.6074702879280345,
+    "macro_f1": 0.5091761813171822,
+    "pre_ictal_recall": 0.3685897435897436,
+    "ictal_recall": 0.8463508322663252,
+    "pre_ictal_f1": 0.5145413870246085,
+    "ictal_f1": 0.5038109756097561
+  },
+  {
+    "threshold": 0.28,
+    "balanced_accuracy": 0.611013986013986,
+    "macro_f1": 0.5248957965584393,
+    "pre_ictal_recall": 0.40384615384615385,
+    "ictal_recall": 0.8181818181818182,
+    "pre_ictal_f1": 0.5458483754512635,
+    "ictal_f1": 0.5039432176656151
+  },
+  {
+    "threshold": 0.29000000000000004,
+    "balanced_accuracy": 0.6166434797596769,
+    "macro_f1": 0.5437041043516087,
+    "pre_ictal_recall": 0.44711538461538464,
+    "ictal_recall": 0.7861715749039693,
+    "pre_ictal_f1": 0.5820584144645341,
+    "ictal_f1": 0.5053497942386831
+  },
+  {
+    "threshold": 0.3,
+    "balanced_accuracy": 0.6135139312956215,
+    "macro_f1": 0.5508697780209023,
+    "pre_ictal_recall": 0.4754273504273504,
+    "ictal_recall": 0.7516005121638925,
+    "pre_ictal_f1": 0.6021650879566982,
+    "ictal_f1": 0.49957446808510636
+  },
+  {
+    "threshold": 0.31,
+    "balanced_accuracy": 0.6177997472011556,
+    "macro_f1": 0.5621585076539058,
+    "pre_ictal_recall": 0.5032051282051282,
+    "ictal_recall": 0.7323943661971831,
+    "pre_ictal_f1": 0.6232219649354945,
+    "ictal_f1": 0.5010950503723172
+  },
+  {
+    "threshold": 0.32,
+    "balanced_accuracy": 0.6250277011720673,
+    "macro_f1": 0.5784558141498382,
+    "pre_ictal_recall": 0.5432692307692307,
+    "ictal_recall": 0.706786171574904,
+    "pre_ictal_f1": 0.6523412443874278,
+    "ictal_f1": 0.5045703839122486
+  },
+  {
+    "threshold": 0.33,
+    "balanced_accuracy": 0.6294828020180133,
+    "macro_f1": 0.5925762518527942,
+    "pre_ictal_recall": 0.5854700854700855,
+    "ictal_recall": 0.6734955185659411,
+    "pre_ictal_f1": 0.6801116971765436,
+    "ictal_f1": 0.5050408065290446
+  },
+  {
+    "threshold": 0.34,
+    "balanced_accuracy": 0.631801150727207,
+    "macro_f1": 0.6032683604508668,
+    "pre_ictal_recall": 0.6233974358974359,
+    "ictal_recall": 0.6402048655569782,
+    "pre_ictal_f1": 0.7030120481927711,
+    "ictal_f1": 0.5035246727089627
+  },
+  {
+    "threshold": 0.35000000000000003,
+    "balanced_accuracy": 0.6338055528196374,
+    "macro_f1": 0.6149323333191463,
+    "pre_ictal_recall": 0.6709401709401709,
+    "ictal_recall": 0.5966709346991037,
+    "pre_ictal_f1": 0.7295962823119373,
+    "ictal_f1": 0.5002683843263553
+  },
+  {
+    "threshold": 0.36000000000000004,
+    "balanced_accuracy": 0.6269489997482955,
+    "macro_f1": 0.6167171834176352,
+    "pre_ictal_recall": 0.7110042735042735,
+    "ictal_recall": 0.5428937259923176,
+    "pre_ictal_f1": 0.7477528089887641,
+    "ictal_f1": 0.4856815578465063
+  },
+  {
+    "threshold": 0.37,
+    "balanced_accuracy": 0.619562362520109,
+    "macro_f1": 0.6171131258046804,
+    "pre_ictal_recall": 0.7564102564102564,
+    "ictal_recall": 0.4827144686299616,
+    "pre_ictal_f1": 0.7670639219934995,
+    "ictal_f1": 0.46716232961586124
+  },
+  {
+    "threshold": 0.38,
+    "balanced_accuracy": 0.6169242533679153,
+    "macro_f1": 0.6198781803229749,
+    "pre_ictal_recall": 0.8023504273504274,
+    "ictal_recall": 0.43149807938540335,
+    "pre_ictal_f1": 0.786799371398638,
+    "ictal_f1": 0.4529569892473118
+  },
+  {
+    "threshold": 0.39,
+    "balanced_accuracy": 0.6108098181161562,
+    "macro_f1": 0.6162897409241215,
+    "pre_ictal_recall": 0.8349358974358975,
+    "ictal_recall": 0.3866837387964149,
+    "pre_ictal_f1": 0.7986714358712315,
+    "ictal_f1": 0.4339080459770115
+  },
+  {
+    "threshold": 0.4,
+    "balanced_accuracy": 0.6076802696521006,
+    "macro_f1": 0.6142105689021337,
+    "pre_ictal_recall": 0.8632478632478633,
+    "ictal_recall": 0.352112676056338,
+    "pre_ictal_f1": 0.8092138207310966,
+    "ictal_f1": 0.4192073170731707
+  },
+  {
+    "threshold": 0.41000000000000003,
+    "balanced_accuracy": 0.5996370120489839,
+    "macro_f1": 0.6053185442549184,
+    "pre_ictal_recall": 0.8830128205128205,
+    "ictal_recall": 0.31626120358514725,
+    "pre_ictal_f1": 0.8144863266814486,
+    "ictal_f1": 0.39615076182838815
+  },
+  {
+    "threshold": 0.42000000000000004,
+    "balanced_accuracy": 0.5886598241351763,
+    "macro_f1": 0.591415888389254,
+    "pre_ictal_recall": 0.9033119658119658,
+    "ictal_recall": 0.2740076824583867,
+    "pre_ictal_f1": 0.8188861985472154,
+    "ictal_f1": 0.36394557823129253
+  },
+  {
+    "threshold": 0.43,
+    "balanced_accuracy": 0.5840296245225822,
+    "macro_f1": 0.5840601493508928,
+    "pre_ictal_recall": 0.9209401709401709,
+    "ictal_recall": 0.2471190781049936,
+    "pre_ictal_f1": 0.8240917782026769,
+    "ictal_f1": 0.34402852049910876
+  },
+  {
+    "threshold": 0.44,
+    "balanced_accuracy": 0.5739556316140824,
+    "macro_f1": 0.5685972996237006,
+    "pre_ictal_recall": 0.9353632478632479,
+    "ictal_recall": 0.21254801536491677,
+    "pre_ictal_f1": 0.8263331760264275,
+    "ictal_f1": 0.31086142322097376
+  },
+  {
+    "threshold": 0.45,
+    "balanced_accuracy": 0.5622790746030183,
+    "macro_f1": 0.5497136138636509,
+    "pre_ictal_recall": 0.9465811965811965,
+    "ictal_recall": 0.17797695262483995,
+    "pre_ictal_f1": 0.8268782081194587,
+    "ictal_f1": 0.2725490196078431
+  },
+  {
+    "threshold": 0.46,
+    "balanced_accuracy": 0.5505515611149414,
+    "macro_f1": 0.5276702541895912,
+    "pre_ictal_recall": 0.9615384615384616,
+    "ictal_recall": 0.13956466069142126,
+    "pre_ictal_f1": 0.8287292817679558,
+    "ictal_f1": 0.22661122661122662
+  },
+  {
+    "threshold": 0.47000000000000003,
+    "balanced_accuracy": 0.542500095757138,
+    "macro_f1": 0.5121443609022556,
+    "pre_ictal_recall": 0.968482905982906,
+    "ictal_recall": 0.11651728553137004,
+    "pre_ictal_f1": 0.8288,
+    "ictal_f1": 0.19548872180451127
+  },
+  {
+    "threshold": 0.48000000000000004,
+    "balanced_accuracy": 0.5351948520962605,
+    "macro_f1": 0.4973217121742731,
+    "pre_ictal_recall": 0.9743589743589743,
+    "ictal_recall": 0.09603072983354674,
+    "pre_ictal_f1": 0.8287142208087233,
+    "ictal_f1": 0.16592920353982302
+  },
+  {
+    "threshold": 0.49,
+    "balanced_accuracy": 0.5260199503157249,
+    "macro_f1": 0.48012968886542196,
+    "pre_ictal_recall": 0.9764957264957265,
+    "ictal_recall": 0.07554417413572344,
+    "pre_ictal_f1": 0.8267752148349163,
+    "ictal_f1": 0.1334841628959276
+  },
+  {
+    "threshold": 0.5,
+    "balanced_accuracy": 0.5213815429484443,
+    "macro_f1": 0.46910800940517283,
+    "pre_ictal_recall": 0.9813034188034188,
+    "ictal_recall": 0.06145966709346991,
+    "pre_ictal_f1": 0.8271049076992346,
+    "ictal_f1": 0.1111111111111111
+  },
+  {
+    "threshold": 0.51,
+    "balanced_accuracy": 0.5206903816058746,
+    "macro_f1": 0.4656855014823312,
+    "pre_ictal_recall": 0.9850427350427351,
+    "ictal_recall": 0.056338028169014086,
+    "pre_ictal_f1": 0.828205704019762,
+    "ictal_f1": 0.10316529894490035
+  },
+  {
+    "threshold": 0.52,
+    "balanced_accuracy": 0.5159969138842379,
+    "macro_f1": 0.45545977011494254,
+    "pre_ictal_recall": 0.9871794871794872,
+    "ictal_recall": 0.04481434058898848,
+    "pre_ictal_f1": 0.8275862068965517,
+    "ictal_f1": 0.08333333333333333
+  },
+  {
+    "threshold": 0.53,
+    "balanced_accuracy": 0.5150386585245741,
+    "macro_f1": 0.45155851287186277,
+    "pre_ictal_recall": 0.9903846153846154,
+    "ictal_recall": 0.03969270166453265,
+    "pre_ictal_f1": 0.8284182305630027,
+    "ictal_f1": 0.0746987951807229
+  },
+  {
+    "threshold": 0.54,
+    "balanced_accuracy": 0.5092768147345612,
+    "macro_f1": 0.44017451594637425,
+    "pre_ictal_recall": 0.9903846153846154,
+    "ictal_recall": 0.028169014084507043,
+    "pre_ictal_f1": 0.8267558528428094,
+    "ictal_f1": 0.0535931790499391
+  },
+  {
+    "threshold": 0.55,
+    "balanced_accuracy": 0.5069830892894274,
+    "macro_f1": 0.43519913533342064,
+    "pre_ictal_recall": 0.9909188034188035,
+    "ictal_recall": 0.023047375160051217,
+    "pre_ictal_f1": 0.8262806236080178,
+    "ictal_f1": 0.04411764705882353
+  },
+  {
+    "threshold": 0.56,
+    "balanced_accuracy": 0.5049564578613874,
+    "macro_f1": 0.4303177584464654,
+    "pre_ictal_recall": 0.9919871794871795,
+    "ictal_recall": 0.01792573623559539,
+    "pre_ictal_f1": 0.826067615658363,
+    "ictal_f1": 0.0345679012345679
+  },
+  {
+    "threshold": 0.5700000000000001,
+    "balanced_accuracy": 0.5031969204504416,
+    "macro_f1": 0.42551126148362695,
+    "pre_ictal_recall": 0.9935897435897436,
+    "ictal_recall": 0.012804097311139564,
+    "pre_ictal_f1": 0.8261159227181879,
+    "ictal_f1": 0.024906600249066
+  },
+  {
+    "threshold": 0.5800000000000001,
+    "balanced_accuracy": 0.5011702890224017,
+    "macro_f1": 0.4204801048954649,
+    "pre_ictal_recall": 0.9946581196581197,
+    "ictal_recall": 0.0076824583866837385,
+    "pre_ictal_f1": 0.8259037480594367,
+    "ictal_f1": 0.015056461731493099
+  },
+  {
+    "threshold": 0.59,
+    "balanced_accuracy": 0.5018655542423148,
+    "macro_f1": 0.4198316330030675,
+    "pre_ictal_recall": 0.9973290598290598,
+    "ictal_recall": 0.006402048655569782,
+    "pre_ictal_f1": 0.8270210409745293,
+    "ictal_f1": 0.012642225031605562
+  },
+  {
+    "threshold": 0.6,
+    "balanced_accuracy": 0.5008522385282949,
+    "macro_f1": 0.41726438858216314,
+    "pre_ictal_recall": 0.9978632478632479,
+    "ictal_recall": 0.0038412291933418692,
+    "pre_ictal_f1": 0.8269145639663568,
+    "ictal_f1": 0.007614213197969543
+  },
+  {
+    "threshold": 0.61,
+    "balanced_accuracy": 0.5013864265624829,
+    "macro_f1": 0.4175336080524218,
+    "pre_ictal_recall": 0.9989316239316239,
+    "ictal_recall": 0.0038412291933418692,
+    "pre_ictal_f1": 0.827433628318584,
+    "ictal_f1": 0.007633587786259542
+  },
+  {
+    "threshold": 0.62,
+    "balanced_accuracy": 0.5001060168313689,
+    "macro_f1": 0.41480934479054776,
+    "pre_ictal_recall": 0.9989316239316239,
+    "ictal_recall": 0.0012804097311139564,
+    "pre_ictal_f1": 0.8270676691729323,
+    "ictal_f1": 0.002551020408163265
+  },
+  {
+    "threshold": 0.63,
+    "balanced_accuracy": 0.5003731108484629,
+    "macro_f1": 0.4149406368867056,
+    "pre_ictal_recall": 0.999465811965812,
+    "ictal_recall": 0.0012804097311139564,
+    "pre_ictal_f1": 0.8273269953570639,
+    "ictal_f1": 0.002554278416347382
+  },
+  {
+    "threshold": 0.64,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.65,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.66,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.67,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.68,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.6900000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.7000000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.7100000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.72,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.73,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.74,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.75,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.76,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.77,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.78,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.79,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.8,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.81,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.8200000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.8300000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.8400000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.85,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.86,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.87,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.88,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.89,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.9,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.91,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.92,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.93,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.9400000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.9500000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.9600000000000001,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.97,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.98,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  },
+  {
+    "threshold": 0.99,
+    "balanced_accuracy": 0.5,
+    "macro_f1": 0.4137016574585635,
+    "pre_ictal_recall": 1.0,
+    "ictal_recall": 0.0,
+    "pre_ictal_f1": 0.827403314917127,
+    "ictal_f1": 0.0
+  }
+]

@@ -1,0 +1,34 @@
+{
+  "split_name": "p20_frozen_baseline",
+  "patient_count": 20,
+  "split_strategy": "patient_level_balanced",
+  "train": [
+    "aaaaaajy",
+    "aaaaaarq",
+    "aaaaaazz",
+    "aaaaabep",
+    "aaaaaclc",
+    "aaaaacqc",
+    "aaaaacyi",
+    "aaaaadkb",
+    "aaaaaefp",
+    "aaaaaewf",
+    "aaaaaexe",
+    "aaaaafjv",
+    "aaaaagbf",
+    "aaaaagdr"
+  ],
+  "validation": [
+    "aaaaaaaq",
+    "aaaaaamc",
+    "aaaaadkj"
+  ],
+  "test": [
+    "aaaaaayf",
+    "aaaaabxe",
+    "aaaaafcf"
+  ],
+  "random_seed": 42,
+  "status": "frozen",
+  "purpose": "Canonical P20 comparison baseline. Do not modify."
+}

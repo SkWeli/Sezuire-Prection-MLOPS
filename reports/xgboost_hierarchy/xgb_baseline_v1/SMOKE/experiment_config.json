@@ -1,0 +1,26 @@
+{
+  "experiment": "hierarchical_xgboost_baseline_no_smote",
+  "smoke": true,
+  "seed": 42,
+  "feature_dir": "data\\features\\tusz_xgb_220",
+  "outer_splits": "experiments\\xgboost\\patient_cv_folds_balanced_v1.json",
+  "inner_splits": "experiments\\xgboost\\patient_cv_inner_splits_v1.json",
+  "xgboost_params": {
+    "n_estimators": 300,
+    "max_depth": 4,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "min_child_weight": 5.0,
+    "reg_lambda": 1.0,
+    "gamma": 0.0,
+    "objective": "binary:logistic",
+    "eval_metric": "logloss",
+    "tree_method": "hist",
+    "random_state": 42,
+    "n_jobs": -1
+  },
+  "stage1_threshold_policy": "Specificity-constrained, minimum 0.80, selected on inner validation only",
+  "stage2_threshold_policy": "Maximize balanced accuracy on inner validation only; tie-break Ictal recall then macro F1",
+  "smote": false
+}

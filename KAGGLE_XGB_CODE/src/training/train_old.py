@@ -8,7 +8,6 @@ import os
 import random
 import sys
 import time
-import json
 from pathlib import Path
 
 import mlflow
@@ -21,11 +20,6 @@ from torch.utils.data import DataLoader, TensorDataset
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
-
-from src.data.lazy_eeg_dataset import LazyEEGDataset  # noqa: E402
-from src.data.round_robin_patient_sampler import (
-    RoundRobinPatientBatchSampler,
-)
 
 from src.evaluation.metrics import (  # noqa: E402
     compute_majority_class_baseline,
@@ -71,7 +65,6 @@ def _set_reproducible_seed(seed=DEFAULT_SEED, deterministic=True):
 
 
 def _discover_npz_files(data_path, max_patients=None):
-    """Discover processed NPZ files without loading EEG arrays."""
     path = Path(data_path)
     if not path.exists():
         raise FileNotFoundError(f"Processed data path does not exist: {path}")
@@ -82,12 +75,16 @@ def _discover_npz_files(data_path, max_patients=None):
         files = [path]
     else:
         files = sorted(path.rglob("*.npz"))
-        if max_patients is not None:
-            files = files[:max_patients]
+
+    if max_patients is not None:
+        if max_patients < 1:
+            raise ValueError("--max-patients must be at least 1.")
+        files = files[:max_patients]
 
     if not files:
         raise FileNotFoundError(f"No .npz files found under: {path}")
     return files
+
 
 def _read_processed_npz(npz_file):
     with np.load(npz_file, allow_pickle=False) as data:
@@ -134,15 +131,8 @@ def _normalize_features(features):
     return (tensor - mean) / std
 
 
-def _dataset_labels(dataset):
-    """Return labels from eager or lazy datasets without loading EEG windows."""
-    if isinstance(dataset, LazyEEGDataset):
-        return dataset.get_all_labels(copy=False)
-    return get_labels_from_split(dataset)
-
-
 def _print_split_distribution(name, dataset):
-    labels = _dataset_labels(dataset)
+    labels = get_labels_from_split(dataset)
     counts = np.bincount(labels, minlength=N_CLASSES)
     total = len(labels)
 
@@ -153,78 +143,8 @@ def _print_split_distribution(name, dataset):
         print(f"{class_name:<12}: {counts[class_index]:7d} ({percentage:6.2f}%)")
     print(f"{'Total':<12}: {total:7d}")
 
-def _prepare_datasets(
-    data_path,
-    max_patients=None,
-    seed=DEFAULT_SEED,
-    *,
-    lazy_loading=False,
-    split_file=None,
-    cache_size=1,
-):
-    """Prepare eager or patient-level lazy datasets."""
-    if lazy_loading:
-        if split_file is None:
-            raise ValueError("--split-file is required with --lazy-loading.")
 
-        train_ids, val_ids, test_ids = load_frozen_patient_split(split_file)
-        selected_ids = train_ids + val_ids + test_ids
-
-        if max_patients is not None and len(selected_ids) != max_patients:
-            raise ValueError(
-                f"Split contains {len(selected_ids)} patients, "
-                f"but --max-patients={max_patients}."
-            )
-
-        processed_dir = Path(data_path)
-        train_files = resolve_patient_npz_files(processed_dir, train_ids)
-        val_files = resolve_patient_npz_files(processed_dir, val_ids)
-        test_files = resolve_patient_npz_files(processed_dir, test_ids)
-
-        print(
-            f"[INFO] Lazy loading enabled: {len(train_files)} train / "
-            f"{len(val_files)} validation / {len(test_files)} test patients"
-        )
-
-        train_dataset = LazyEEGDataset(train_files, cache_size=cache_size, normalize=True)
-        val_dataset = LazyEEGDataset(val_files, cache_size=cache_size, normalize=True)
-        test_dataset = LazyEEGDataset(test_files, cache_size=cache_size, normalize=True)
-
-        all_files = train_files + val_files + test_files
-        sampling_rates = []
-        for npz_file in all_files:
-            with np.load(npz_file, allow_pickle=False) as data:
-                if "sfreq" in data.files:
-                    rate = float(np.asarray(data["sfreq"]).reshape(-1)[0])
-                elif "sampling_rate" in data.files:
-                    rate = float(np.asarray(data["sampling_rate"]).reshape(-1)[0])
-                else:
-                    rate = 128.0
-                sampling_rates.append(rate)
-
-        sampling_rate = sampling_rates[0]
-        if not all(np.isclose(rate, sampling_rate) for rate in sampling_rates):
-            raise ValueError(f"Sampling-rate mismatch across subjects: {sampling_rates}")
-
-        source_path = Path(data_path)
-        dataset_name = f"{source_path.name}-p{len(selected_ids)}-lazy"
-        return {
-            "train_dataset": train_dataset,
-            "val_dataset": val_dataset,
-            "test_dataset": test_dataset,
-            "sampling_rate": sampling_rate,
-            "patient_count": len(selected_ids),
-            "split_strategy": "frozen_patient_level_lazy",
-            "split_patient_ids": {
-                "train": train_ids,
-                "validation": val_ids,
-                "test": test_ids,
-            },
-            "split_score": float("nan"),
-            "run_dataset_name": dataset_name,
-            "input_files": all_files,
-        }
-
+def _prepare_datasets(data_path, max_patients=None, seed=DEFAULT_SEED):
     files = _discover_npz_files(data_path, max_patients=max_patients)
     print(f"[INFO] Discovered {len(files)} processed subject file(s).")
 
@@ -300,8 +220,9 @@ def _prepare_datasets(
         "input_files": files,
     }
 
+
 def _calculate_class_weights(train_dataset, device):
-    labels = _dataset_labels(train_dataset)
+    labels = get_labels_from_split(train_dataset)
     class_counts = np.bincount(labels, minlength=N_CLASSES)
     present_mask = class_counts > 0
     if not np.all(present_mask):
@@ -315,192 +236,6 @@ def _calculate_class_weights(train_dataset, device):
     )
     return torch.tensor(weights, dtype=torch.float32, device=device), class_counts, weights
 
-def load_frozen_patient_split(
-    split_path: str | Path,
-) -> tuple[list[str], list[str], list[str]]:
-    """
-    Load an explicitly frozen patient-level split.
-
-    The JSON must contain:
-        train
-        validation
-        test
-    """
-
-    split_path = Path(split_path)
-
-    if not split_path.is_file():
-        raise FileNotFoundError(
-            f"Frozen split file not found: {split_path}"
-        )
-
-    with split_path.open("r", encoding="utf-8") as file:
-        split_data = json.load(file)
-
-    required = {"train", "validation", "test"}
-    missing = required - set(split_data)
-
-    if missing:
-        raise KeyError(
-            f"{split_path} is missing split keys: {sorted(missing)}"
-        )
-
-    train_ids = list(split_data["train"])
-    val_ids = list(split_data["validation"])
-    test_ids = list(split_data["test"])
-
-    all_ids = train_ids + val_ids + test_ids
-
-    if len(all_ids) != len(set(all_ids)):
-        raise ValueError(
-            "A patient appears in more than one split."
-        )
-
-    return train_ids, val_ids, test_ids
-
-
-def resolve_patient_npz_files(
-    processed_dir: str | Path,
-    patient_ids: list[str],
-) -> list[Path]:
-    """
-    Resolve patient IDs to their processed NPZ files.
-    """
-
-    processed_dir = Path(processed_dir)
-    resolved: list[Path] = []
-
-    for patient_id in patient_ids:
-        expected_path = (
-            processed_dir
-            / patient_id
-            / f"{patient_id}.npz"
-        )
-
-        if expected_path.is_file():
-            resolved.append(expected_path)
-            continue
-
-        matches = list(
-            processed_dir.rglob(f"{patient_id}.npz")
-        )
-
-        if len(matches) != 1:
-            raise FileNotFoundError(
-                f"Could not uniquely resolve NPZ for "
-                f"patient {patient_id}. Matches: {matches}"
-            )
-
-        resolved.append(matches[0])
-
-    return resolved
-
-
-def print_lazy_split_distribution(
-    name: str,
-    dataset: LazyEEGDataset,
-) -> None:
-    """
-    Print class counts without loading EEG arrays.
-    """
-
-    labels = dataset.get_all_labels(copy=False)
-    counts = np.bincount(labels, minlength=3)
-    total = len(labels)
-
-    print(f"\n{name} class distribution")
-    print("-" * 35)
-    print(
-        f"Interictal : {counts[0]:6d} "
-        f"({counts[0] / total * 100:6.2f}%)"
-    )
-    print(
-        f"Pre-Ictal  : {counts[1]:6d} "
-        f"({counts[1] / total * 100:6.2f}%)"
-    )
-    print(
-        f"Ictal      : {counts[2]:6d} "
-        f"({counts[2] / total * 100:6.2f}%)"
-    )
-    print(f"Total      : {total:6d}")
-
-
-
-PRIMARY_METRIC_KEYS = {
-    "loss",
-    "accuracy",
-    "balanced_accuracy",
-    "precision",
-    "recall_sensitivity",
-    "specificity",
-    "f1",
-    "auc",
-    "per_class_precision",
-    "per_class_recall",
-    "per_class_specificity",
-    "per_class_f1",
-    "per_class_support",
-    "confusion_matrix",
-}
-
-ALARM_METRIC_KEYS = {
-    "decision_threshold",
-    "alarm_accuracy",
-    "alarm_balanced_accuracy",
-    "alarm_precision",
-    "alarm_recall_sensitivity",
-    "alarm_specificity",
-    "alarm_f1",
-    "alarm_auc",
-    "alarm_youden_j",
-    "alarm_prediction_rate",
-    "alarm_true_rate",
-    "alarm_confusion_matrix",
-    "tp",
-    "tn",
-    "fp",
-    "fn",
-    "evaluated_duration_seconds",
-    "evaluated_duration_hours",
-    "false_alarms_per_hour",
-}
-
-
-def _validate_reporting_metric_contract(name, metrics, *, require_majority=False):
-    """Fail once with the complete list of fields missing from reporting input."""
-    required = PRIMARY_METRIC_KEYS | ALARM_METRIC_KEYS
-    if require_majority:
-        required = required | {"majority_class"}
-
-    missing = sorted(required - set(metrics))
-    if missing:
-        raise KeyError(
-            f"{name} metric dictionary is incomplete. Missing keys: {missing}"
-        )
-
-    for key in (
-        "per_class_precision",
-        "per_class_recall",
-        "per_class_specificity",
-        "per_class_f1",
-        "per_class_support",
-    ):
-        if len(metrics[key]) != N_CLASSES:
-            raise ValueError(
-                f"{name}[{key!r}] must contain {N_CLASSES} values, "
-                f"got {len(metrics[key])}."
-            )
-
-    if np.asarray(metrics["confusion_matrix"]).shape != (N_CLASSES, N_CLASSES):
-        raise ValueError(
-            f"{name} multiclass confusion matrix must have shape "
-            f"({N_CLASSES}, {N_CLASSES})."
-        )
-
-    if np.asarray(metrics["alarm_confusion_matrix"]).shape != (2, 2):
-        raise ValueError(
-            f"{name} alarm confusion matrix must have shape (2, 2)."
-        )
 
 def train(
     data_path="data/processed/tusz",
@@ -511,10 +246,6 @@ def train(
     window_overlap_frac=0.5,
     model_name="cnn",
     seed=DEFAULT_SEED,
-    lazy_loading=False,
-    split_file=None,
-    cache_size=1,
-    num_workers=0,
     deterministic=True,
     run_name_suffix=None,
     alarm_threshold_policy="balanced_accuracy",
@@ -527,14 +258,7 @@ def train(
     print(f"[INFO] Compute device: {device}")
     print(f"[INFO] Random seed: {seed} | deterministic={deterministic}")
 
-    prepared = _prepare_datasets(
-        data_path,
-        max_patients=max_patients,
-        seed=seed,
-        lazy_loading=lazy_loading,
-        split_file=split_file,
-        cache_size=cache_size,
-    )
+    prepared = _prepare_datasets(data_path, max_patients=max_patients, seed=seed)
     train_dataset = prepared["train_dataset"]
     val_dataset = prepared["val_dataset"]
     test_dataset = prepared["test_dataset"]
@@ -546,62 +270,16 @@ def train(
     _print_split_distribution("Test", test_dataset)
 
     train_generator = torch.Generator().manual_seed(seed)
-
-    common_loader_options = {
-        "num_workers": num_workers,
-        "pin_memory": torch.cuda.is_available(),
-    }
-
-    if num_workers > 0:
-        common_loader_options["persistent_workers"] = True
-
-    if isinstance(train_dataset, LazyEEGDataset):
-        train_batch_sampler = RoundRobinPatientBatchSampler(
-            train_dataset,
-            batch_size=batch_size,
-            batches_per_patient_block=8,
-            shuffle_patients=True,
-            shuffle_within_patient=True,
-            drop_last=False,
-            seed=seed,
-        )
-
-        train_loader = DataLoader(
-            train_dataset,
-            batch_sampler=train_batch_sampler,
-            **common_loader_options,
-        )
-
-        print(
-            "[INFO] Training sampler: round-robin patient mini-block "
-            f"(8 batches/block, {len(train_batch_sampler)} total batches)"
-        )
-
-    else:
-        train_batch_sampler = None
-
-        train_loader = DataLoader(
-            train_dataset,
-            batch_size=batch_size,
-            shuffle=True,
-            generator=train_generator,
-            **common_loader_options,
-        )
-
-    val_loader = DataLoader(
-        val_dataset,
+    train_loader = DataLoader(
+        train_dataset,
         batch_size=batch_size,
-        shuffle=False,
-        **common_loader_options,
+        shuffle=True,
+        generator=train_generator,
+        num_workers=0,
     )
+    val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False, num_workers=0)
 
-    test_loader = DataLoader(
-        test_dataset,
-        batch_size=batch_size,
-        shuffle=False,
-        **common_loader_options,
-    )
-    
     sample_features, _ = train_dataset[0]
     n_channels = int(sample_features.shape[-2])
     n_timepoints = int(sample_features.shape[-1])
@@ -674,21 +352,6 @@ def train(
                 "alarm_threshold_source": "validation_only",
                 "alarm_threshold_policy": alarm_threshold_policy,
                 "min_alarm_specificity": min_alarm_specificity,
-                "lazy_loading": isinstance(
-                    train_dataset,
-                    LazyEEGDataset,
-                ),
-                "training_sampler": (
-                    "round_robin_patient_mini_block"
-                    if isinstance(train_dataset, LazyEEGDataset)
-                    else "global_window_shuffle"
-                ),
-                "patient_cache_size": (
-                    cache_size
-                    if isinstance(train_dataset, LazyEEGDataset)
-                    else 0
-                ),
-                "num_workers": num_workers,
             }
         )
         mlflow.set_tags(
@@ -704,9 +367,6 @@ def train(
             mlflow.log_param(f"class_{class_index}_weight", float(class_weights[class_index]))
 
         for epoch in range(epochs):
-            if train_batch_sampler is not None:
-                train_batch_sampler.set_epoch(epoch)
-
             model.train()
             train_loss_total = 0.0
             train_correct = 0
@@ -771,21 +431,6 @@ def train(
             f"with multiclass macro F1={best_val_f1:.4f}"
         )
 
-        normalized_suffix = (
-            run_name_suffix.strip()
-            if isinstance(run_name_suffix, str)
-            else ""
-        )
-
-        if normalized_suffix in {
-            "P20_LAZY_SMOKE",
-            "P20_BLOCK_SMOKE",
-        }:
-            print("\n[PASS] Patient-block lazy-loading smoke test completed.")
-            print("[INFO] Threshold tuning and held-out test reporting skipped.")
-            print(f"[INFO] Best validation macro F1: {best_val_f1:.4f}")
-            return 0
-
         threshold_result = find_best_threshold(
             model=model,
             loader=val_loader,
@@ -817,15 +462,10 @@ def train(
                 "[WARNING] Requested minimum alarm specificity was not achievable; "
                 "the highest-specificity validation threshold was selected."
             )
-
-        specificity_constraint_met = bool(
-            threshold_result["specificity_constraint_met"]
-        )
-
         mlflow.log_metric("selected_alarm_threshold", best_threshold)
         mlflow.log_param(
             "alarm_specificity_constraint_met",
-            specificity_constraint_met,
+            bool(threshold_result["specificity_constraint_met"]),
         )
         log_evaluation_metrics_to_mlflow(
             prefix="val_tuned_alarm",
@@ -843,24 +483,14 @@ def train(
         )
         test_metrics["alarm_threshold_policy"] = alarm_threshold_policy
         test_metrics["alarm_min_specificity"] = float(min_alarm_specificity)
-        test_metrics["alarm_specificity_constraint_met"] = (
-            specificity_constraint_met
+        test_metrics["alarm_specificity_constraint_met"] = bool(
+            threshold_result["specificity_constraint_met"]
         )
 
         baseline_metrics = compute_majority_class_baseline(
             train_dataset=train_dataset,
             test_dataset=test_dataset,
             window_step_s=window_step_s,
-        )
-
-        _validate_reporting_metric_contract(
-            "test_metrics",
-            test_metrics,
-        )
-        _validate_reporting_metric_contract(
-            "baseline_metrics",
-            baseline_metrics,
-            require_majority=True,
         )
 
         evaluation_dir = PROJECT_ROOT / "reports" / "evaluation"
@@ -895,17 +525,8 @@ def train(
         mlflow.log_metric("best_epoch", best_epoch)
         mlflow.log_metric("training_elapsed_seconds", time.perf_counter() - start_time)
 
-        safe_run_name = "".join(
-            character if character.isalnum() or character in {"-", "_", "."}
-            else "_"
-            for character in run_name
-        )
-        checkpoint_path = (
-            PROJECT_ROOT
-            / "models"
-            / "experiments"
-            / f"{safe_run_name}.pt"
-        )
+        checkpoint_filename = "seizure_tcn.pt" if model_name == "tcn" else "seizure_cnn.pt"
+        checkpoint_path = PROJECT_ROOT / "models" / checkpoint_filename
         checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
         torch.save(
             {
@@ -929,13 +550,12 @@ def train(
                 "split_seed": seed,
                 "dataloader_seed": seed,
                 "deterministic_algorithms": deterministic,
-                "lazy_loading": lazy_loading,
-                "lazy_cache_size": cache_size if lazy_loading else 0,
-                "dataloader_num_workers": num_workers,
                 "primary_prediction_rule": "multiclass_argmax",
                 "alarm_threshold_policy": alarm_threshold_policy,
                 "min_alarm_specificity": float(min_alarm_specificity),
-                "alarm_specificity_constraint_met": specificity_constraint_met,
+                "alarm_specificity_constraint_met": bool(
+                    threshold_result["specificity_constraint_met"]
+                ),
             },
             checkpoint_path,
         )
@@ -1041,34 +661,6 @@ if __name__ == "__main__":
             "--alarm-threshold-policy specificity_constrained."
         ),
     )
-
-    parser.add_argument(
-    "--lazy-loading",
-    action="store_true",
-    help="Load patient EEG files lazily instead of concatenating them.",
-)
-
-    parser.add_argument(
-        "--split-file",
-        type=str,
-        default=None,
-        help="Frozen patient split JSON used by lazy loading.",
-    )
-
-    parser.add_argument(
-        "--cache-size",
-        type=int,
-        default=1,
-        help="Maximum patient arrays cached per process.",
-    )
-
-    parser.add_argument(
-        "--num-workers",
-        type=int,
-        default=0,
-        help="PyTorch DataLoader worker count.",
-    )
-
     args = parser.parse_args()
 
     sys.exit(
@@ -1080,10 +672,6 @@ if __name__ == "__main__":
             max_patients=args.max_patients,
             window_overlap_frac=args.window_overlap_frac,
             model_name=args.model,
-            lazy_loading=args.lazy_loading,
-            split_file=args.split_file,
-            cache_size=args.cache_size,
-            num_workers=args.num_workers,
             seed=args.seed,
             deterministic=args.deterministic,
             run_name_suffix=args.run_name_suffix,

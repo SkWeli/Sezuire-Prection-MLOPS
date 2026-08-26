@@ -1,0 +1,71 @@
+Final Held-Out Test Evaluation Report
+=====================================
+
+Primary Task: Three-Class Classification
+----------------------------------------
+Test loss                    : 1.0176
+Accuracy                     : 0.1547
+Balanced accuracy            : 0.3460
+Macro precision              : 0.3757
+Macro recall / sensitivity   : 0.3460
+Macro specificity            : 0.6787
+Macro F1-score               : 0.0996
+Macro multiclass AUC         : 0.6317
+
+Per-Class Metrics
+-----------------
+Class                Precision      Recall   Specificity          F1
+Interictal              1.0000      0.0380        1.0000      0.0733
+Pre-Ictal               0.1271      1.0000        0.0360      0.2256
+Ictal                   0.0000      0.0000        1.0000      0.0000
+
+Three-Class Confusion Matrix
+----------------------------
+Actual \ Predicted          Interictal     Pre-Ictal         Ictal
+Interictal                         303          7662             0
+Pre-Ictal                            0          1181             0
+Ictal                                0           448             0
+
+Secondary Task: Alarm / No-Alarm
+--------------------------------
+Alarm = Pre-Ictal or Ictal
+Validation-selected threshold : 0.6300
+Threshold-selection policy    : balanced_accuracy
+Alarm accuracy                : 0.4900
+Alarm balanced accuracy       : 0.6318
+Alarm precision               : 0.2290
+Alarm sensitivity             : 0.8465
+Alarm specificity             : 0.4171
+Alarm F1-score                : 0.3605
+Alarm Youden J                : 0.2636
+Predicted-alarm window rate   : 0.6277
+Alarm AUC                     : 0.6813
+Evaluated duration hours      : 5.3300
+False-positive windows/hour   : 871.1069
+                         Predicted No Alarm  Predicted Alarm
+Actual No Alarm                        3322             4643
+Actual Alarm                            250             1379
+
+Majority-Class Baseline
+-----------------------
+Majority class                : 0 (Interictal)
+Baseline accuracy             : 0.8302
+Baseline balanced accuracy    : 0.3333
+Baseline macro precision      : 0.2767
+Baseline macro recall         : 0.3333
+Baseline macro specificity    : 0.6667
+Baseline macro F1-score       : 0.3024
+Baseline macro AUC            : 0.5000
+Baseline false-positive windows/hour: 0.0000
+
+Model vs Baseline
+-----------------
+Accuracy difference           : -0.6755
+Balanced accuracy difference  : +0.0127
+Macro F1 difference           : -0.2028
+False-positive windows/hour difference: +871.1069
+
+Reported accuracy source: held-out test set
+Primary multiclass prediction rule: argmax, independent of alarm threshold
+Alarm threshold source: validation split only
+False alarm type: window-level false positives per hour

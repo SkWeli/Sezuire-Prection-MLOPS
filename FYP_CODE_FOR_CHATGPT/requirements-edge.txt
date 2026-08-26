@@ -1,0 +1,8 @@
+# ONNX model format, graph loading, metadata, and validation
+onnx>=1.16,<2.0
+
+# ONNX operator translation required by the modern PyTorch exporter
+onnxscript>=0.5,<1.0
+
+# Portable CPU inference engine for exported ONNX models
+onnxruntime>=1.18,<2.0

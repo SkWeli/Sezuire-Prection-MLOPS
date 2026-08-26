@@ -1,0 +1,49 @@
+{
+  "fold_level_equal_weight": {
+    "balanced_accuracy": {
+      "mean": 0.29292166114003665,
+      "std": 0.0
+    },
+    "macro_f1": {
+      "mean": 0.2741170656242576,
+      "std": 0.0
+    },
+    "macro_auc_ovr": {
+      "mean": 0.45933078094112983,
+      "std": 0.0
+    }
+  },
+  "patient_balanced_summary": {
+    "balanced_accuracy_present_classes": {
+      "mean": 0.4071942054514269,
+      "std": 0.14752115322774775,
+      "n_patients_contributing": 8
+    },
+    "macro_f1_present_classes": {
+      "mean": 0.41429086947427574,
+      "std": 0.24837284416002708,
+      "n_patients_contributing": 8
+    },
+    "interictal_recall": {
+      "mean": 0.6545833333333334,
+      "std": 0.18906568523487632,
+      "n_patients_contributing": 8
+    },
+    "pre_ictal_recall": {
+      "mean": 0.11502752293577982,
+      "std": 0.08428193255100673,
+      "n_patients_contributing": 5
+    },
+    "ictal_recall": {
+      "mean": 0.1361713298977359,
+      "std": 0.12131055008774078,
+      "n_patients_contributing": 5
+    }
+  },
+  "n_completed_folds": 1,
+  "n_patient_rows": 8,
+  "elapsed_seconds": 16.59357452392578,
+  "folds_run": [
+    1
+  ]
+}

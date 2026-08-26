@@ -1,0 +1,332 @@
+{
+  "method": "Balanced patient-level five-fold random-search assignment",
+  "seed": 42,
+  "candidate_searches": 200000,
+  "n_folds": 5,
+  "patients_per_fold": 8,
+  "best_score": 0.1220007788227567,
+  "rules": [
+    "Each patient appears in exactly one held-out fold.",
+    "Each fold contains exactly 8 held-out patients.",
+    "No patient is split between train and held-out data.",
+    "Both Pre-Ictal and Ictal must be represented in every held-out fold.",
+    "Class-composition similarity is prioritized over equal window totals."
+  ],
+  "folds": [
+    {
+      "fold": 1,
+      "train_patients": [
+        "aaaaaaaq",
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaabxe",
+        "aaaaacyi",
+        "aaaaadkj",
+        "aaaaaefp",
+        "aaaaaewf",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagdr",
+        "aaaaahie",
+        "aaaaahlk",
+        "aaaaahln",
+        "aaaaahsi",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaalhp",
+        "aaaaamck"
+      ],
+      "held_out_patients": [
+        "aaaaaayf",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaadkb",
+        "aaaaaexe",
+        "aaaaagbf",
+        "aaaaaghb",
+        "aaaaagus"
+      ],
+      "train_windows": 320485,
+      "held_out_windows": 35077,
+      "train_counts": {
+        "interictal": 281347,
+        "pre_ictal": 31289,
+        "ictal": 7849
+      },
+      "held_out_counts": {
+        "interictal": 30926,
+        "pre_ictal": 3285,
+        "ictal": 866
+      },
+      "held_out_minority_patient_counts": {
+        "with_pre_ictal": 5,
+        "with_ictal": 5
+      }
+    },
+    {
+      "fold": 2,
+      "train_patients": [
+        "aaaaaaaq",
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaabxe",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaewf",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagbf",
+        "aaaaagdr",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahlk",
+        "aaaaahln",
+        "aaaaahsi",
+        "aaaaaict",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaalhp"
+      ],
+      "held_out_patients": [
+        "aaaaaajy",
+        "aaaaacyi",
+        "aaaaaefp",
+        "aaaaahie",
+        "aaaaahsn",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaamck"
+      ],
+      "train_windows": 118528,
+      "held_out_windows": 237034,
+      "train_counts": {
+        "interictal": 103979,
+        "pre_ictal": 11305,
+        "ictal": 3244
+      },
+      "held_out_counts": {
+        "interictal": 208294,
+        "pre_ictal": 23269,
+        "ictal": 5471
+      },
+      "held_out_minority_patient_counts": {
+        "with_pre_ictal": 6,
+        "with_ictal": 6
+      }
+    },
+    {
+      "fold": 3,
+      "train_patients": [
+        "aaaaaaaq",
+        "aaaaaajy",
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaabxe",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaacyi",
+        "aaaaadkb",
+        "aaaaaefp",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagbf",
+        "aaaaagdr",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahln",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaaiih",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaamck"
+      ],
+      "held_out_patients": [
+        "aaaaaamc",
+        "aaaaadkj",
+        "aaaaaewf",
+        "aaaaahlk",
+        "aaaaahsi",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaalhp"
+      ],
+      "train_windows": 325486,
+      "held_out_windows": 30076,
+      "train_counts": {
+        "interictal": 285789,
+        "pre_ictal": 31943,
+        "ictal": 7754
+      },
+      "held_out_counts": {
+        "interictal": 26484,
+        "pre_ictal": 2631,
+        "ictal": 961
+      },
+      "held_out_minority_patient_counts": {
+        "with_pre_ictal": 5,
+        "with_ictal": 5
+      }
+    },
+    {
+      "fold": 4,
+      "train_patients": [
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaayf",
+        "aaaaabxe",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaacyi",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaefp",
+        "aaaaaewf",
+        "aaaaaexe",
+        "aaaaafjv",
+        "aaaaagbf",
+        "aaaaagdr",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahlk",
+        "aaaaahln",
+        "aaaaahsi",
+        "aaaaahsn",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaalhp",
+        "aaaaamck"
+      ],
+      "held_out_patients": [
+        "aaaaaaaq",
+        "aaaaaarq",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaafcf",
+        "aaaaaict",
+        "aaaaakfk",
+        "aaaaakis"
+      ],
+      "train_windows": 325473,
+      "held_out_windows": 30089,
+      "train_counts": {
+        "interictal": 286268,
+        "pre_ictal": 31459,
+        "ictal": 7746
+      },
+      "held_out_counts": {
+        "interictal": 26005,
+        "pre_ictal": 3115,
+        "ictal": 969
+      },
+      "held_out_minority_patient_counts": {
+        "with_pre_ictal": 6,
+        "with_ictal": 6
+      }
+    },
+    {
+      "fold": 5,
+      "train_patients": [
+        "aaaaaaaq",
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaacyi",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaefp",
+        "aaaaaewf",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaagbf",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahlk",
+        "aaaaahsi",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaalhp",
+        "aaaaamck"
+      ],
+      "held_out_patients": [
+        "aaaaabxe",
+        "aaaaafjv",
+        "aaaaagdr",
+        "aaaaahln",
+        "aaaaaiih",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj"
+      ],
+      "train_windows": 332276,
+      "held_out_windows": 23286,
+      "train_counts": {
+        "interictal": 291709,
+        "pre_ictal": 32300,
+        "ictal": 8267
+      },
+      "held_out_counts": {
+        "interictal": 20564,
+        "pre_ictal": 2274,
+        "ictal": 448
+      },
+      "held_out_minority_patient_counts": {
+        "with_pre_ictal": 6,
+        "with_ictal": 6
+      }
+    }
+  ]
+}

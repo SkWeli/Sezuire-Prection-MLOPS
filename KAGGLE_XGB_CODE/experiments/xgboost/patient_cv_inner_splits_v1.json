@@ -1,0 +1,340 @@
+{
+  "method": "Frozen outer 5-fold patient CV with one patient-grouped inner validation split per outer fold",
+  "purpose": "Inner validation is used only for threshold selection. Outer held-out patients are not used for model or threshold selection.",
+  "seed": 42,
+  "candidate_searches_per_outer_fold": 100000,
+  "inner_train_patients": 24,
+  "inner_validation_patients": 8,
+  "folds": [
+    {
+      "outer_fold": 1,
+      "inner_train_patients": [
+        "aaaaaaaq",
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaabxe",
+        "aaaaacyi",
+        "aaaaadkj",
+        "aaaaaefp",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagdr",
+        "aaaaahie",
+        "aaaaahln",
+        "aaaaahsi",
+        "aaaaahsn",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakis",
+        "aaaaalhp",
+        "aaaaamck"
+      ],
+      "inner_validation_patients": [
+        "aaaaaarq",
+        "aaaaaewf",
+        "aaaaahlk",
+        "aaaaaict",
+        "aaaaaijh",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaakfk"
+      ],
+      "outer_held_out_patients": [
+        "aaaaaayf",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaadkb",
+        "aaaaaexe",
+        "aaaaagbf",
+        "aaaaaghb",
+        "aaaaagus"
+      ],
+      "inner_train_windows": 277908,
+      "inner_validation_windows": 42577,
+      "inner_train_counts": {
+        "interictal": 243923,
+        "pre_ictal": 27186,
+        "ictal": 6799
+      },
+      "inner_validation_counts": {
+        "interictal": 37424,
+        "pre_ictal": 4103,
+        "ictal": 1050
+      },
+      "inner_validation_minority_patient_counts": {
+        "with_pre_ictal": 8,
+        "with_ictal": 8
+      },
+      "search_score": 0.033153085400718575
+    },
+    {
+      "outer_fold": 2,
+      "inner_train_patients": [
+        "aaaaaamc",
+        "aaaaaarq",
+        "aaaaabep",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaewf",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagbf",
+        "aaaaagdr",
+        "aaaaagus",
+        "aaaaahlk",
+        "aaaaahln",
+        "aaaaaiih",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaaiup",
+        "aaaaajdj",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaalhp"
+      ],
+      "inner_validation_patients": [
+        "aaaaaaaq",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabxe",
+        "aaaaaghb",
+        "aaaaahsi",
+        "aaaaaict",
+        "aaaaaizb"
+      ],
+      "outer_held_out_patients": [
+        "aaaaaajy",
+        "aaaaacyi",
+        "aaaaaefp",
+        "aaaaahie",
+        "aaaaahsn",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaamck"
+      ],
+      "inner_train_windows": 88816,
+      "inner_validation_windows": 29712,
+      "inner_train_counts": {
+        "interictal": 77971,
+        "pre_ictal": 8440,
+        "ictal": 2405
+      },
+      "inner_validation_counts": {
+        "interictal": 26008,
+        "pre_ictal": 2865,
+        "ictal": 839
+      },
+      "inner_validation_minority_patient_counts": {
+        "with_pre_ictal": 8,
+        "with_ictal": 8
+      },
+      "search_score": 0.0011302903624225479
+    },
+    {
+      "outer_fold": 3,
+      "inner_train_patients": [
+        "aaaaaaaq",
+        "aaaaaajy",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaabxe",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaadkb",
+        "aaaaaefp",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaafjv",
+        "aaaaagdr",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahln",
+        "aaaaahsn",
+        "aaaaaiih",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakfk",
+        "aaaaakis",
+        "aaaaamck"
+      ],
+      "inner_validation_patients": [
+        "aaaaaarq",
+        "aaaaaayf",
+        "aaaaacyi",
+        "aaaaagbf",
+        "aaaaaghb",
+        "aaaaaict",
+        "aaaaaiup",
+        "aaaaaizb"
+      ],
+      "outer_held_out_patients": [
+        "aaaaaamc",
+        "aaaaadkj",
+        "aaaaaewf",
+        "aaaaahlk",
+        "aaaaahsi",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaalhp"
+      ],
+      "inner_train_windows": 279671,
+      "inner_validation_windows": 45815,
+      "inner_train_counts": {
+        "interictal": 245496,
+        "pre_ictal": 27438,
+        "ictal": 6737
+      },
+      "inner_validation_counts": {
+        "interictal": 40293,
+        "pre_ictal": 4505,
+        "ictal": 1017
+      },
+      "inner_validation_minority_patient_counts": {
+        "with_pre_ictal": 8,
+        "with_ictal": 8
+      },
+      "search_score": 0.033297310900112634
+    },
+    {
+      "outer_fold": 4,
+      "inner_train_patients": [
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaayf",
+        "aaaaabxe",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaacyi",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaewf",
+        "aaaaaexe",
+        "aaaaafjv",
+        "aaaaagdr",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahln",
+        "aaaaahsn",
+        "aaaaaiij",
+        "aaaaaijh",
+        "aaaaajdj",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaalhp",
+        "aaaaamck"
+      ],
+      "inner_validation_patients": [
+        "aaaaaefp",
+        "aaaaagbf",
+        "aaaaaghb",
+        "aaaaahlk",
+        "aaaaahsi",
+        "aaaaaiih",
+        "aaaaaiup",
+        "aaaaaizb"
+      ],
+      "outer_held_out_patients": [
+        "aaaaaaaq",
+        "aaaaaarq",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaafcf",
+        "aaaaaict",
+        "aaaaakfk",
+        "aaaaakis"
+      ],
+      "inner_train_windows": 284544,
+      "inner_validation_windows": 40929,
+      "inner_train_counts": {
+        "interictal": 250167,
+        "pre_ictal": 27584,
+        "ictal": 6793
+      },
+      "inner_validation_counts": {
+        "interictal": 36101,
+        "pre_ictal": 3875,
+        "ictal": 953
+      },
+      "inner_validation_minority_patient_counts": {
+        "with_pre_ictal": 8,
+        "with_ictal": 8
+      },
+      "search_score": 0.03793986430932437
+    },
+    {
+      "outer_fold": 5,
+      "inner_train_patients": [
+        "aaaaaajy",
+        "aaaaaamc",
+        "aaaaaayf",
+        "aaaaaazz",
+        "aaaaabep",
+        "aaaaaclc",
+        "aaaaacqc",
+        "aaaaacyi",
+        "aaaaadkb",
+        "aaaaadkj",
+        "aaaaaefp",
+        "aaaaaexe",
+        "aaaaafcf",
+        "aaaaaghb",
+        "aaaaagus",
+        "aaaaahie",
+        "aaaaahsi",
+        "aaaaahsn",
+        "aaaaaict",
+        "aaaaaiij",
+        "aaaaajru",
+        "aaaaakcy",
+        "aaaaakis",
+        "aaaaalhp"
+      ],
+      "inner_validation_patients": [
+        "aaaaaaaq",
+        "aaaaaarq",
+        "aaaaaewf",
+        "aaaaagbf",
+        "aaaaahlk",
+        "aaaaaijh",
+        "aaaaakfk",
+        "aaaaamck"
+      ],
+      "outer_held_out_patients": [
+        "aaaaabxe",
+        "aaaaafjv",
+        "aaaaagdr",
+        "aaaaahln",
+        "aaaaaiih",
+        "aaaaaiup",
+        "aaaaaizb",
+        "aaaaajdj"
+      ],
+      "inner_train_windows": 288770,
+      "inner_validation_windows": 43506,
+      "inner_train_counts": {
+        "interictal": 253668,
+        "pre_ictal": 27926,
+        "ictal": 7176
+      },
+      "inner_validation_counts": {
+        "interictal": 38041,
+        "pre_ictal": 4374,
+        "ictal": 1091
+      },
+      "inner_validation_minority_patient_counts": {
+        "with_pre_ictal": 8,
+        "with_ictal": 8
+      },
+      "search_score": 0.0352644308267017
+    }
+  ]
+}
